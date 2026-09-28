@@ -8,7 +8,10 @@ export async function GET(req: Request) {
     try {
       const res = await n8n("whatsapp_status", { tenant_id: tenantId });
       return Response.json({ ok: true, ...res });
-    } catch {
+    } catch (e: any) {
+      if (e.status === 404 || (e.message && e.message.includes("does not exist"))) {
+        await one(`UPDATE wa_instances SET status = 'pending' WHERE tenant_id = $1 RETURNING *`, [tenantId]);
+      }
       // No instance yet, or Evolution unreachable — fall back to what we stored.
       const row = await one(
         `SELECT status, instance_name FROM wa_instances WHERE tenant_id = $1`,
@@ -35,8 +38,16 @@ export async function POST(req: Request) {
       return Response.json({ ok: true, ...res });
     }
     if (action === "disconnect") {
-      const res = await n8n("whatsapp_disconnect", { tenant_id: tenantId });
-      return Response.json({ ok: true, ...res });
+      try {
+        const res = await n8n("whatsapp_disconnect", { tenant_id: tenantId });
+        return Response.json({ ok: true, ...res });
+      } catch (e: any) {
+        if (e.status === 404 || (e.message && e.message.includes("does not exist"))) {
+          await one(`UPDATE wa_instances SET status = 'pending' WHERE tenant_id = $1 RETURNING *`, [tenantId]);
+          return Response.json({ ok: true, status: "pending" });
+        }
+        throw e;
+      }
     }
     return Response.json({ ok: false, error: "unknown_action" }, { status: 400 });
   } catch (e) {

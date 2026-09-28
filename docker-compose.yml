@@ -4,11 +4,15 @@ services:
     container_name: wa-dashboard
     restart: unless-stopped
     ports:
-      - "3000:3000"
+      - "3010:3000"
+    env_file:
+      - .env
     environment:
-      DATABASE_URL: ${DATABASE_URL}
       DATABASE_SSL: ${DATABASE_SSL:-false}
-      SESSION_SECRET: ${SESSION_SECRET}
-      N8N_API_URL: ${N8N_API_URL}
-      N8N_API_KEY: ${N8N_API_KEY}
       NODE_ENV: production
+    networks:
+      - n8n_default
+
+networks:
+  n8n_default:
+    external: true

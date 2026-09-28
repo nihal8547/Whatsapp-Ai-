@@ -27,7 +27,7 @@ export async function n8n<T = any>(action: Action, body: Record<string, unknown>
   }
   if (!res.ok || data.ok === false) {
     const err: any = new Error(data.error || "n8n_" + res.status);
-    err.status = res.ok ? 502 : res.status;
+    err.status = res.ok ? 400 : res.status;
     throw err;
   }
   return data as T;

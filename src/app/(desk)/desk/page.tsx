@@ -17,6 +17,10 @@ export default async function DeskPage() {
 
   const stats = await one(
     `SELECT
+       (SELECT sum(ai_replies) FROM wa_usage_daily u
+         WHERE u.tenant_id = $1 AND date_trunc('month', u.day) = date_trunc('month', CURRENT_DATE)) AS ai_replies_month,
+       (SELECT p.name FROM wa_tenants t LEFT JOIN wa_plans p ON t.plan_id = p.id WHERE t.id = $1) AS plan_name,
+       (SELECT p.monthly_reply_limit FROM wa_tenants t LEFT JOIN wa_plans p ON t.plan_id = p.id WHERE t.id = $1) AS plan_limit,
        (SELECT count(*) FROM wa_messages m
          WHERE m.tenant_id = $1 AND m.direction = 'in'
            AND m.created_at >= date_trunc('day', now() AT TIME ZONE $2) AT TIME ZONE $2) AS msgs_today,
@@ -64,10 +68,14 @@ export default async function DeskPage() {
   return (
     <div className="p-6 lg:p-8 max-w-6xl">
       <h1 className="text-2xl font-semibold tracking-tight">Hello {firstName}</h1>
-      <p className="text-ink-soft mt-1">
+      <p className="text-ink-soft mt-1 flex items-center flex-wrap gap-2">
         {settings?.bot_enabled
           ? "Your assistant is answering chats."
           : "Your assistant is paused — customers are waiting on your team."}
+        <span className="text-ink-faint hidden sm:inline">·</span>
+        <span className="bg-canvas border border-line px-2.5 py-0.5 rounded-full text-xs font-medium whitespace-nowrap">
+          {stats?.plan_name || "Free Trial"}: {stats?.ai_replies_month ?? 0} / {stats?.plan_limit ? stats.plan_limit : "Unlimited"} AI Replies
+        </span>
       </p>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-6">
