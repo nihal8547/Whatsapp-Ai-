@@ -13,6 +13,21 @@ const ZONES = [
   "Europe/London",
 ];
 
+const BUSINESS_TYPES = [
+  { id: "clinic", label: "Clinic / Hospital" },
+  { id: "travels", label: "Travels & Tours" },
+  { id: "hostel", label: "Hostel / Hotel" },
+  { id: "realestate", label: "Real Estate" },
+  { id: "grocery", label: "Grocery / Supermarket" },
+  { id: "tech", label: "Technical Company / IT Agency" },
+  { id: "restaurant", label: "Restaurant / Cafe" },
+  { id: "education", label: "Education / Coaching" },
+  { id: "retail", label: "Retail / E-commerce" },
+  { id: "salon", label: "Salons / Spas" },
+  { id: "other", label: "Other" },
+];
+
+
 export default function SignupForm() {
   const router = useRouter();
   const [form, setForm] = useState({
@@ -22,6 +37,7 @@ export default function SignupForm() {
     password: "",
     adminPhone: "",
     timezone: "Asia/Qatar",
+    businessType: "other",
   });
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -93,6 +109,26 @@ export default function SignupForm() {
             ))}
           </select>
         </Field>
+        <Field label="Business Type">
+          <select className={inputClass} value={form.businessType} onChange={set("businessType")}>
+            {BUSINESS_TYPES.map((bt) => (
+              <option key={bt.id} value={bt.id}>{bt.label}</option>
+            ))}
+          </select>
+        </Field>
+        
+        <div className="flex items-start gap-2 pt-2 pb-2">
+          <input
+            type="checkbox"
+            id="terms"
+            required
+            className="mt-1 h-4 w-4 rounded border-line text-pine focus:ring-pine"
+          />
+          <label htmlFor="terms" className="text-sm text-ink-soft">
+            I have read, understood, and agree to the <a href="/terms" target="_blank" className="text-pine hover:underline">Terms and Conditions</a> and Privacy Policy.
+          </label>
+        </div>
+
         {error && <p className="text-sm text-brick">{error}</p>}
         <Button type="submit" disabled={busy} className="w-full">
           {busy ? "Creating…" : "Create workspace"}

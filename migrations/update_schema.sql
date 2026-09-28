@@ -19,3 +19,6 @@ ALTER TABLE wa_bot_settings ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFA
 
 ALTER TABLE wa_services ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT now();
 ALTER TABLE wa_contacts ADD COLUMN IF NOT EXISTS handoff_reason TEXT;
+
+ALTER TABLE wa_tenants ADD COLUMN IF NOT EXISTS business_type VARCHAR(50) DEFAULT 'other';
+ALTER TABLE wa_tenants ADD COLUMN IF NOT EXISTS business_metadata JSONB DEFAULT '{}'::jsonb;
