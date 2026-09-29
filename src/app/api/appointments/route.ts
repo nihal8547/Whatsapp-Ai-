@@ -51,9 +51,9 @@ export async function POST(req: Request) {
        ), t AS (
          SELECT (replace($4,'T',' ')::timestamp AT TIME ZONE cfg.timezone) AS st FROM cfg
        )
-       INSERT INTO wa_appointments (tenant_id, phone, customer_name, service_id, start_time, end_time, notes, source)
+       INSERT INTO wa_appointments (tenant_id, phone, customer_name, service_id, start_time, end_time, notes, source, status)
        SELECT $1, c.phone, NULLIF($5,''), svc.id, t.st,
-              t.st + make_interval(mins => svc.duration_min), NULLIF($6,''), 'dashboard'
+              t.st + make_interval(mins => svc.duration_min), NULLIF($6,''), 'dashboard', 'confirmed'
          FROM c, svc, t
        RETURNING id, start_time`,
       [tenantId, phone, serviceId, startLocal, String(b.customer_name || ""), String(b.notes || "")]

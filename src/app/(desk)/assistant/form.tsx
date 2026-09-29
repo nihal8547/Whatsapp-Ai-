@@ -17,6 +17,13 @@ export default function AssistantForm({ initial, readOnly }: { initial: any; rea
     bot_enabled: initial?.bot_enabled ?? true,
     reminder_24h_template: initial?.reminder_24h_template ?? "",
     reminder_1h_template: initial?.reminder_1h_template ?? "",
+    followup_enabled: initial?.followup_enabled ?? true,
+    followup_after_hours: initial?.followup_after_hours ?? 72,
+    followup_template: initial?.followup_template ?? "",
+    review_enabled: initial?.review_enabled ?? true,
+    review_delay_hours: initial?.review_delay_hours ?? 2,
+    review_link: initial?.review_link ?? "",
+    review_template: initial?.review_template ?? "",
   });
   const [busy, setBusy] = useState(false);
   const { message, show } = useToast();
@@ -165,6 +172,99 @@ export default function AssistantForm({ initial, readOnly }: { initial: any; rea
               disabled={readOnly}
               value={f.reminder_1h_template}
               onChange={(e) => setF({ ...f, reminder_1h_template: e.target.value })}
+            />
+          </Field>
+        </Panel>
+
+        <Panel className="space-y-4">
+          <h2 className="font-semibold">Follow-up messages</h2>
+          <label className="flex items-start gap-3">
+            <input
+              type="checkbox"
+              className="mt-1"
+              disabled={readOnly}
+              checked={f.followup_enabled}
+              onChange={(e) => setF({ ...f, followup_enabled: e.target.checked })}
+            />
+            <span>
+              <span className="font-medium">Message customers who go quiet</span>
+              <span className="block text-sm text-ink-soft">
+                Sends one gentle check-in if a customer stops replying, unless they already have a booking or are talking to your team.
+              </span>
+            </span>
+          </label>
+          <Field label="Wait this many hours before following up">
+            <input
+              className={`${inputClass} tabular`}
+              type="number"
+              min={1}
+              disabled={readOnly}
+              value={f.followup_after_hours}
+              onChange={(e) => setF({ ...f, followup_after_hours: Number(e.target.value) })}
+            />
+          </Field>
+          <Field
+            label="Follow-up message"
+            hint="Use {name} — it's filled in for each customer."
+          >
+            <textarea
+              rows={3}
+              className={inputClass}
+              disabled={readOnly}
+              value={f.followup_template}
+              onChange={(e) => setF({ ...f, followup_template: e.target.value })}
+            />
+          </Field>
+        </Panel>
+
+        <Panel className="space-y-4">
+          <h2 className="font-semibold">Review requests</h2>
+          <label className="flex items-start gap-3">
+            <input
+              type="checkbox"
+              className="mt-1"
+              disabled={readOnly}
+              checked={f.review_enabled}
+              onChange={(e) => setF({ ...f, review_enabled: e.target.checked })}
+            />
+            <span>
+              <span className="font-medium">Ask for a review after a completed appointment</span>
+              <span className="block text-sm text-ink-soft">
+                Sent automatically once you mark an appointment as done.
+              </span>
+            </span>
+          </label>
+          <Field label="Wait this many hours after completion">
+            <input
+              className={`${inputClass} tabular`}
+              type="number"
+              min={1}
+              disabled={readOnly}
+              value={f.review_delay_hours}
+              onChange={(e) => setF({ ...f, review_delay_hours: Number(e.target.value) })}
+            />
+          </Field>
+          <Field
+            label="Review link"
+            hint="Your Google review link or any link you want customers to open."
+          >
+            <input
+              className={inputClass}
+              disabled={readOnly}
+              value={f.review_link}
+              onChange={(e) => setF({ ...f, review_link: e.target.value })}
+            />
+          </Field>
+          <Field
+            label="Review request message"
+            hint="Use {name}, {service} and {link} — all filled in automatically."
+          >
+            <textarea
+              rows={3}
+              className={inputClass}
+              disabled={readOnly}
+              value={f.review_template}
+              onChange={(e) => setF({ ...f, review_template: e.target.value })}
             />
           </Field>
         </Panel>

@@ -1,9 +1,22 @@
 node_modules
 .next
 out
+
+# Environment — never commit real secrets
 .env
 .env.local
 .env*.local
+
+# Scratch / debug scripts that may contain credentials
+test_api.sh
+gen_token.js
+find_db.sh
+fix_admin.sql
+fix_tenants.sql
+fix_all_tables.sql
+*.tar.gz
+
+# Misc
 npm-debug.log*
 .DS_Store
 *.tsbuildinfo

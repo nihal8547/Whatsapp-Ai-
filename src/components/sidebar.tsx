@@ -10,6 +10,7 @@ const LINKS = [
   { href: "/appointments", label: "Appointments" },
   { href: "/contacts", label: "Contacts" },
   { href: "/services", label: "Services & hours" },
+  { href: "/media", label: "Media library" },
   { href: "/assistant", label: "Assistant" },
   { href: "/whatsapp", label: "WhatsApp number" },
   { href: "/team", label: "Team" },

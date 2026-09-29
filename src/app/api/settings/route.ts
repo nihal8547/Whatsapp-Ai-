@@ -7,7 +7,9 @@ export async function GET(req: Request) {
     const s = await one(
       `SELECT business_name, bot_name, persona_prompt, business_info, timezone,
               slot_interval_min, admin_phone, bot_enabled,
-              reminder_24h_template, reminder_1h_template
+              reminder_24h_template, reminder_1h_template,
+              followup_enabled, followup_after_hours, followup_template,
+              review_enabled, review_delay_hours, review_link, review_template
          FROM wa_bot_settings WHERE tenant_id = $1`,
       [tenantId]
     );
@@ -33,6 +35,13 @@ export async function PUT(req: Request) {
          bot_enabled = COALESCE($9, bot_enabled),
          reminder_24h_template = COALESCE(NULLIF($10,''), reminder_24h_template),
          reminder_1h_template = COALESCE(NULLIF($11,''), reminder_1h_template),
+         followup_enabled = COALESCE($12, followup_enabled),
+         followup_after_hours = COALESCE($13, followup_after_hours),
+         followup_template = COALESCE(NULLIF($14,''), followup_template),
+         review_enabled = COALESCE($15, review_enabled),
+         review_delay_hours = COALESCE($16, review_delay_hours),
+         review_link = COALESCE(NULLIF($17,''), review_link),
+         review_template = COALESCE(NULLIF($18,''), review_template),
          updated_at = now()
        WHERE tenant_id = $1 RETURNING tenant_id`,
       [
@@ -47,6 +56,13 @@ export async function PUT(req: Request) {
         typeof b.bot_enabled === "boolean" ? b.bot_enabled : null,
         String(b.reminder_24h_template ?? ""),
         String(b.reminder_1h_template ?? ""),
+        typeof b.followup_enabled === "boolean" ? b.followup_enabled : null,
+        b.followup_after_hours ? Number(b.followup_after_hours) : null,
+        String(b.followup_template ?? ""),
+        typeof b.review_enabled === "boolean" ? b.review_enabled : null,
+        b.review_delay_hours ? Number(b.review_delay_hours) : null,
+        String(b.review_link ?? ""),
+        String(b.review_template ?? ""),
       ]
     );
     if (!row) return Response.json({ ok: false, error: "not_found" }, { status: 404 });
