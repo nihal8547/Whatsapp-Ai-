@@ -139,37 +139,46 @@ export default function AdminShell({
     show(p.active ? "Plan hidden." : "Plan active.");
   }
 
+  /* ── delete workspace ── */
+  async function deleteWorkspace(id: number, name: string) {
+    if (
+      !confirm(
+        `Are you sure you want to permanently delete workspace "${name}"?\n\nThis will ERASE all chats, appointments, services, media, and team accounts linked to it. This action cannot be undone.`
+      )
+    ) {
+      return;
+    }
+    const res = await fetch(`/api/admin/tenants/${id}`, { method: "DELETE" });
+    const data = await res.json();
+    if (!data.ok) {
+      if (data.error === "cannot_delete_active_workspace") {
+        show("Cannot delete your currently active workspace.");
+      } else {
+        show("Could not delete workspace.");
+      }
+      return;
+    }
+    setTenants((prev) => prev.filter((t) => t.id !== id));
+    show(`Workspace "${name}" was permanently deleted.`);
+    router.refresh();
+  }
+
   return (
-    <div className="min-h-screen bg-canvas">
-      {/* ── Header ── */}
-      <header className="bg-panel border-b border-line px-6 lg:px-8 py-4 flex items-center justify-between sticky top-0 z-20">
-        <p className="font-semibold">Platform admin</p>
-        <div className="flex items-center gap-4 text-sm">
-          {hasOwnTenant && (
-            <Link href="/desk" className="text-pine hover:underline">My workspace</Link>
-          )}
-          <button
-            onClick={async () => { await fetch("/api/auth/logout", { method: "POST" }); router.push("/login"); }}
-            className="text-ink-soft hover:text-ink"
-          >Sign out</button>
+    <div className="p-6 lg:p-8 space-y-8 max-w-7xl mx-auto">
+      {/* ── Overview stats ── */}
+      <div id="overview" className="scroll-mt-6">
+        <PageHead title="Platform overview" lead="Live numbers across the whole platform." />
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+          <Stat label="Total workspaces" value={overview.total_workspaces ?? 0}
+            sub={`${overview.active_count ?? 0} active · ${overview.trial_count ?? 0} trial · ${overview.suspended_count ?? 0} suspended`} />
+          <Stat label="Messages today" value={overview.msgs_today ?? 0} />
+          <Stat label="AI replies this month" value={overview.ai_replies_month ?? 0} />
+          <Stat label="Est. MRR (QAR)" value={Number(overview.mrr_qar ?? 0).toFixed(0)} />
         </div>
-      </header>
+      </div>
 
-      <div className="p-6 lg:p-8 space-y-8 max-w-7xl mx-auto">
-
-        {/* ── §3 Overview stats ── */}
-        <div>
-          <PageHead title="Platform overview" lead="Live numbers across the whole platform." />
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
-            <Stat label="Total workspaces" value={overview.total_workspaces ?? 0}
-              sub={`${overview.active_count ?? 0} active · ${overview.trial_count ?? 0} trial · ${overview.suspended_count ?? 0} suspended`} />
-            <Stat label="Messages today" value={overview.msgs_today ?? 0} />
-            <Stat label="AI replies this month" value={overview.ai_replies_month ?? 0} />
-            <Stat label="Est. MRR (QAR)" value={Number(overview.mrr_qar ?? 0).toFixed(0)} />
-          </div>
-        </div>
-
-        {/* ── §2 Platform settings ── */}
+      {/* ── Platform settings ── */}
+      <div id="settings" className="scroll-mt-6">
         <Panel>
           <h2 className="font-semibold mb-4">Platform settings</h2>
           <form onSubmit={savePlatformSettings} className="grid sm:grid-cols-2 gap-4">
@@ -206,80 +215,84 @@ export default function AdminShell({
             </div>
           </form>
         </Panel>
+      </div>
 
-        {/* ── §4 Plans management ── */}
-        <Panel>
-          <h2 className="font-semibold mb-4">Plans</h2>
-          <div className="overflow-x-auto -mx-5 mb-5">
-            <table className="w-full text-sm">
-              <thead className="border-b border-line">
-                <tr className="text-left text-ink-soft">
-                  <th className="px-5 py-2 font-medium">Code</th>
-                  <th className="px-5 py-2 font-medium">Name</th>
-                  <th className="px-5 py-2 font-medium">Price (QAR)</th>
-                  <th className="px-5 py-2 font-medium">Reply limit</th>
-                  <th className="px-5 py-2 font-medium">Status</th>
-                  <th className="px-5 py-2 font-medium"></th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-line">
-                {plans.map(p => (
-                  <tr key={p.id}>
-                    {editingPlan === p.id ? (
-                      <>
-                        <td className="px-5 py-2"><input className={`${inputClass} w-28`} defaultValue={p.code}
-                          onChange={e => setPlanEdit(x => ({ ...x, code: e.target.value }))} /></td>
-                        <td className="px-5 py-2"><input className={`${inputClass} w-36`} defaultValue={p.name}
-                          onChange={e => setPlanEdit(x => ({ ...x, name: e.target.value }))} /></td>
-                        <td className="px-5 py-2"><input className={`${inputClass} w-24 tabular`} type="number" defaultValue={p.price_qar}
-                          onChange={e => setPlanEdit(x => ({ ...x, price_qar: e.target.value as any }))} /></td>
-                        <td className="px-5 py-2"><input className={`${inputClass} w-28 tabular`} type="number" placeholder="unlimited"
-                          defaultValue={p.monthly_reply_limit ?? ""}
-                          onChange={e => setPlanEdit(x => ({ ...x, monthly_reply_limit: e.target.value === "" ? null : Number(e.target.value) as any }))} /></td>
-                        <td className="px-5 py-2"><Tag tone={p.active ? "good" : "neutral"}>{p.active ? "active" : "hidden"}</Tag></td>
-                        <td className="px-5 py-2 flex gap-2">
-                          <Button variant="primary" className="text-xs py-1 px-2.5" onClick={() => savePlanEdit(p.id)}>Save</Button>
-                          <Button variant="quiet" className="text-xs py-1 px-2.5" onClick={() => { setEditingPlan(null); setPlanEdit({}); }}>Cancel</Button>
-                        </td>
-                      </>
-                    ) : (
-                      <>
-                        <td className="px-5 py-2 font-mono text-xs">{p.code}</td>
-                        <td className="px-5 py-2">{p.name}</td>
-                        <td className="px-5 py-2 tabular">{p.price_qar}</td>
-                        <td className="px-5 py-2 tabular">{p.monthly_reply_limit ?? "Unlimited"}</td>
-                        <td className="px-5 py-2"><Tag tone={p.active ? "good" : "neutral"}>{p.active ? "active" : "hidden"}</Tag></td>
-                        <td className="px-5 py-2 flex gap-2">
-                          <Button variant="quiet" className="text-xs py-1 px-2.5"
-                            onClick={() => { setEditingPlan(p.id); setPlanEdit({}); }}>Edit</Button>
-                          <Button variant="quiet" className="text-xs py-1 px-2.5" onClick={() => togglePlan(p)}>
-                            {p.active ? "Hide" : "Show"}
-                          </Button>
-                        </td>
-                      </>
-                    )}
+      {/* ── §4 Plans management ── */}
+        <div id="plans" className="scroll-mt-6">
+          <Panel>
+            <h2 className="font-semibold mb-4">Plans</h2>
+            <div className="overflow-x-auto -mx-5 mb-5">
+              <table className="w-full text-sm">
+                <thead className="border-b border-line">
+                  <tr className="text-left text-ink-soft">
+                    <th className="px-5 py-2 font-medium">Code</th>
+                    <th className="px-5 py-2 font-medium">Name</th>
+                    <th className="px-5 py-2 font-medium">Price (QAR)</th>
+                    <th className="px-5 py-2 font-medium">Reply limit</th>
+                    <th className="px-5 py-2 font-medium">Status</th>
+                    <th className="px-5 py-2 font-medium"></th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <form onSubmit={addPlan} className="grid sm:grid-cols-4 gap-3 border-t border-line pt-4">
-            <Field label="Code"><input className={inputClass} required placeholder="starter"
-              value={planDraft.code} onChange={e => setPlanDraft(d => ({ ...d, code: e.target.value }))} /></Field>
-            <Field label="Name"><input className={inputClass} required placeholder="Starter"
-              value={planDraft.name} onChange={e => setPlanDraft(d => ({ ...d, name: e.target.value }))} /></Field>
-            <Field label="Price (QAR)"><input className={`${inputClass} tabular`} type="number" step="0.01" placeholder="0"
-              value={planDraft.price_qar} onChange={e => setPlanDraft(d => ({ ...d, price_qar: e.target.value }))} /></Field>
-            <Field label="Reply limit" hint="Empty = unlimited"><input className={`${inputClass} tabular`} type="number" placeholder="1000"
-              value={planDraft.monthly_reply_limit} onChange={e => setPlanDraft(d => ({ ...d, monthly_reply_limit: e.target.value }))} /></Field>
-            <div className="sm:col-span-4">
-              <Button type="submit" disabled={savingPlan}>{savingPlan ? "Creating…" : "Add plan"}</Button>
+                </thead>
+                <tbody className="divide-y divide-line">
+                  {plans.map(p => (
+                    <tr key={p.id}>
+                      {editingPlan === p.id ? (
+                        <>
+                          <td className="px-5 py-2"><input className={`${inputClass} w-28`} defaultValue={p.code}
+                            onChange={e => setPlanEdit(x => ({ ...x, code: e.target.value }))} /></td>
+                          <td className="px-5 py-2"><input className={`${inputClass} w-36`} defaultValue={p.name}
+                            onChange={e => setPlanEdit(x => ({ ...x, name: e.target.value }))} /></td>
+                          <td className="px-5 py-2"><input className={`${inputClass} w-24 tabular`} type="number" defaultValue={p.price_qar}
+                            onChange={e => setPlanEdit(x => ({ ...x, price_qar: e.target.value as any }))} /></td>
+                          <td className="px-5 py-2"><input className={`${inputClass} w-28 tabular`} type="number" placeholder="unlimited"
+                            defaultValue={p.monthly_reply_limit ?? ""}
+                            onChange={e => setPlanEdit(x => ({ ...x, monthly_reply_limit: e.target.value === "" ? null : Number(e.target.value) as any }))} /></td>
+                          <td className="px-5 py-2"><Tag tone={p.active ? "good" : "neutral"}>{p.active ? "active" : "hidden"}</Tag></td>
+                          <td className="px-5 py-2 flex gap-2">
+                            <Button variant="primary" className="text-xs py-1 px-2.5" onClick={() => savePlanEdit(p.id)}>Save</Button>
+                            <Button variant="quiet" className="text-xs py-1 px-2.5" onClick={() => { setEditingPlan(null); setPlanEdit({}); }}>Cancel</Button>
+                          </td>
+                        </>
+                      ) : (
+                        <>
+                          <td className="px-5 py-2 font-mono text-xs">{p.code}</td>
+                          <td className="px-5 py-2">{p.name}</td>
+                          <td className="px-5 py-2 tabular">{p.price_qar}</td>
+                          <td className="px-5 py-2 tabular">{p.monthly_reply_limit ?? "Unlimited"}</td>
+                          <td className="px-5 py-2"><Tag tone={p.active ? "good" : "neutral"}>{p.active ? "active" : "hidden"}</Tag></td>
+                          <td className="px-5 py-2 flex gap-2">
+                            <Button variant="quiet" className="text-xs py-1 px-2.5"
+                              onClick={() => { setEditingPlan(p.id); setPlanEdit({}); }}>Edit</Button>
+                            <Button variant="quiet" className="text-xs py-1 px-2.5" onClick={() => togglePlan(p)}>
+                              {p.active ? "Hide" : "Show"}
+                            </Button>
+                          </td>
+                        </>
+                      )}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
-          </form>
-        </Panel>
+            <form onSubmit={addPlan} className="grid sm:grid-cols-4 gap-3 border-t border-line pt-4">
+              <Field label="Code"><input className={inputClass} required placeholder="starter"
+                value={planDraft.code} onChange={e => setPlanDraft(d => ({ ...d, code: e.target.value }))} /></Field>
+              <Field label="Name"><input className={inputClass} required placeholder="Starter"
+                value={planDraft.name} onChange={e => setPlanDraft(d => ({ ...d, name: e.target.value }))} /></Field>
+              <Field label="Price (QAR)"><input className={`${inputClass} tabular`} type="number" step="0.01" placeholder="0"
+                value={planDraft.price_qar} onChange={e => setPlanDraft(d => ({ ...d, price_qar: e.target.value }))} /></Field>
+              <Field label="Reply limit" hint="Empty = unlimited"><input className={`${inputClass} tabular`} type="number" placeholder="1000"
+                value={planDraft.monthly_reply_limit} onChange={e => setPlanDraft(d => ({ ...d, monthly_reply_limit: e.target.value }))} /></Field>
+              <div className="sm:col-span-4">
+                <Button type="submit" disabled={savingPlan}>{savingPlan ? "Creating…" : "Add plan"}</Button>
+              </div>
+            </form>
+          </Panel>
+        </div>
 
         {/* ── §5 Workspaces table ── */}
-        <Panel pad={false}>
+        <div id="tenants" className="scroll-mt-6">
+          <Panel pad={false}>
           <div className="px-5 pt-5 pb-3">
             <h2 className="font-semibold">Workspaces</h2>
             <p className="text-sm text-ink-soft mt-0.5">Click a workspace to view its detail page.</p>
@@ -313,11 +326,21 @@ export default function AdminShell({
                     <td className="px-5 py-3">
                       <Tag tone={STATUS_TONES[t.status] ?? "neutral"}>{t.status}</Tag>
                     </td>
-                    <td className="px-5 py-3">
-                      <Link href={`/admin/tenants/${t.id}`}
-                        className="text-xs text-ink-soft hover:text-ink border border-line rounded px-2 py-1">
-                        Detail →
-                      </Link>
+                    <td className="px-5 py-3 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <Link
+                          href={`/admin/tenants/${t.id}`}
+                          className="text-xs text-ink-soft hover:text-ink border border-line rounded px-2.5 py-1 hover:bg-canvas transition-colors"
+                        >
+                          Detail →
+                        </Link>
+                        <button
+                          onClick={() => deleteWorkspace(t.id, t.name)}
+                          className="text-xs text-brick hover:bg-brick/10 border border-brick/30 rounded px-2.5 py-1 transition-colors"
+                        >
+                          Delete
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -325,8 +348,8 @@ export default function AdminShell({
             </table>
           </div>
         </Panel>
-
       </div>
+
       <Toast message={message} />
     </div>
   );

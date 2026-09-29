@@ -13,7 +13,7 @@ export async function GET() {
         (SELECT count(*) FROM wa_tenants WHERE status = 'active')      AS active_count,
         (SELECT count(*) FROM wa_tenants WHERE status = 'suspended')   AS suspended_count,
         (SELECT count(*) FROM wa_tenants WHERE status = 'cancelled')   AS cancelled_count,
-        (SELECT COALESCE(SUM(msg_received),0) FROM wa_usage_daily
+        (SELECT COALESCE(SUM(messages_in),0) FROM wa_usage_daily
           WHERE day = CURRENT_DATE)                                     AS msgs_today,
         (SELECT COALESCE(SUM(ai_replies),0) FROM wa_usage_daily
           WHERE day >= date_trunc('month', now())::date)                AS ai_replies_month,

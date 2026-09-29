@@ -7,7 +7,7 @@ import { Button, Field, inputClass, Panel, Tag, Toast, useToast } from "@/compon
 
 type Tenant = {
   id: number; name: string; slug: string; status: string;
-  trial_ends_at: string | null; created_at: string;
+  trial_ends_at: string | Date | null; created_at: string | Date;
   business_type: string | null; admin_notes: string;
   plan: string; plan_id: number | null;
   timezone: string | null; admin_phone: string | null;
@@ -17,6 +17,16 @@ type UsageRow = { day: string; msg_received: number; ai_replies: number };
 type Counts = Record<string, string | number>;
 type TeamMember = { email: string; role: string };
 type Plan = { id: number; code: string; name: string };
+
+function toDateInputValue(val: unknown): string {
+  if (!val) return "";
+  try {
+    const d = val instanceof Date ? val : new Date(String(val));
+    return isNaN(d.getTime()) ? "" : d.toISOString().slice(0, 10);
+  } catch {
+    return "";
+  }
+}
 
 const STATUS_TONES: Record<string, "good" | "warn" | "bad" | "neutral"> = {
   active: "good", trial: "warn", suspended: "bad", cancelled: "neutral",
@@ -35,6 +45,32 @@ export default function TenantDetail({
   const [notes, setNotes] = useState(init.admin_notes ?? "");
   const [savingNotes, setSavingNotes] = useState(false);
   const [savingAction, setSavingAction] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  async function deleteWorkspace() {
+    const promptMsg = `Are you absolutely sure you want to permanently delete "${tenant.name}"?\n\nThis will ERASE all contacts, messages, appointments, media files, and user accounts for this workspace.\n\nThis action CANNOT be undone.\n\nType the workspace slug "${tenant.slug}" to confirm:`;
+    const input = prompt(promptMsg);
+    if (input !== tenant.slug) {
+      if (input !== null) alert("Workspace slug does not match. Deletion cancelled.");
+      return;
+    }
+
+    setDeleting(true);
+    const res = await fetch(`/api/admin/tenants/${tenant.id}`, { method: "DELETE" });
+    const data = await res.json();
+    setDeleting(false);
+    if (!data.ok) {
+      if (data.error === "cannot_delete_active_workspace") {
+        show("Cannot delete your currently active workspace.");
+      } else {
+        show("Could not delete workspace.");
+      }
+      return;
+    }
+    show(`Workspace "${tenant.name}" was deleted.`);
+    router.push("/admin");
+    router.refresh();
+  }
 
   async function patch(patch: Record<string, unknown>, confirmMsg?: string) {
     if (confirmMsg && !confirm(confirmMsg)) return;
@@ -227,7 +263,7 @@ export default function TenantDetail({
               <input
                 type="date"
                 className={inputClass}
-                defaultValue={tenant.trial_ends_at ? tenant.trial_ends_at.slice(0, 10) : ""}
+                defaultValue={toDateInputValue(tenant.trial_ends_at)}
                 disabled={savingAction}
                 onBlur={e => { if (e.target.value) patch({ trial_ends_at: e.target.value }); }}
               />
@@ -235,6 +271,25 @@ export default function TenantDetail({
           </div>
         </Panel>
 
+        {/* ── Danger zone ── */}
+        <Panel className="border-brick/30 bg-brick/5">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h2 className="font-semibold text-brick">Delete workspace</h2>
+              <p className="text-sm text-ink-soft mt-0.5">
+                Permanently removes this workspace and all associated chats, contacts, appointments, media, and team accounts.
+              </p>
+            </div>
+            <Button
+              variant="danger"
+              disabled={deleting}
+              onClick={deleteWorkspace}
+              className="shrink-0"
+            >
+              {deleting ? "Deleting…" : "Delete workspace"}
+            </Button>
+          </div>
+        </Panel>
       </div>
       <Toast message={message} />
     </div>

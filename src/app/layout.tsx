@@ -4,6 +4,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "Webbea WhatsApp Desk",
   description: "Run your WhatsApp desk with an AI colleague that books appointments for you.",
+  icons: { icon: "/icon.svg" },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

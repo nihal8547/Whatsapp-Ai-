@@ -26,7 +26,7 @@ export async function GET(
     if (!tenant) return Response.json({ ok: false, error: "not_found" }, { status: 404 });
 
     const usage = await q(
-      `SELECT day, msg_received, ai_replies
+      `SELECT day, messages_in AS msg_received, ai_replies
          FROM wa_usage_daily
         WHERE tenant_id = $1
         ORDER BY day DESC LIMIT 30`,
@@ -86,3 +86,32 @@ export async function PATCH(
     return errorResponse(e);
   }
 }
+
+export async function DELETE(
+  _req: Request,
+  ctx: { params: Promise<{ id: string }> }
+) {
+  try {
+    const s = await requireSession();
+    if (!s.superAdmin) throw new AuthError("forbidden", 403);
+    const { id } = await ctx.params;
+    const tenantIdNum = Number(id);
+
+    if (s.tenantId && s.tenantId === tenantIdNum) {
+      return Response.json(
+        { ok: false, error: "cannot_delete_active_workspace" },
+        { status: 400 }
+      );
+    }
+
+    const row = await one(
+      `DELETE FROM wa_tenants WHERE id = $1::int RETURNING id, name`,
+      [id]
+    );
+    if (!row) return Response.json({ ok: false, error: "not_found" }, { status: 404 });
+    return Response.json({ ok: true, deleted: row });
+  } catch (e) {
+    return errorResponse(e);
+  }
+}
+

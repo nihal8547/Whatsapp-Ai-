@@ -1,7 +1,7 @@
 import { redirect, notFound } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import { one, q } from "@/lib/db";
-import TenantDetail from "./detail";
+import TenantDetail from "@/app/admin/tenants/[id]/detail";
 
 export const dynamic = "force-dynamic";
 
@@ -17,7 +17,9 @@ export default async function TenantDetailPage({
   const { id } = await params;
 
   const tenant = await one(
-    `SELECT t.id, t.name, t.slug, t.status, t.trial_ends_at, t.created_at,
+    `SELECT t.id, t.name, t.slug, t.status,
+            to_char(t.trial_ends_at, 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS trial_ends_at,
+            to_char(t.created_at, 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS created_at,
             t.business_type, t.admin_notes,
             COALESCE(p.name,'No plan') AS plan, p.id AS plan_id, p.price_qar,
             bs.timezone, bs.admin_phone,
@@ -33,7 +35,7 @@ export default async function TenantDetailPage({
 
   const [usage, counts, team, plans] = await Promise.all([
     q(
-      `SELECT to_char(day,'YYYY-MM-DD') AS day, msg_received, ai_replies
+      `SELECT to_char(day,'YYYY-MM-DD') AS day, messages_in AS msg_received, ai_replies
          FROM wa_usage_daily WHERE tenant_id = $1 ORDER BY day DESC LIMIT 30`,
       [id]
     ),
