@@ -39,15 +39,24 @@ function Stat({ label, value, sub }: { label: string; value: string | number; su
   );
 }
 
+type Platform30Days = {
+  messages_in: number;
+  bot_replies: number;
+  new_contacts: number;
+  bookings_created: number;
+  ad_leads: number;
+};
+
 /* ─── Main shell ─────────────────────────────────────────── */
 export default function AdminShell({
-  initialTenants, allPlans, hasOwnTenant, platformSettings: initPS, overview,
+  initialTenants, allPlans, hasOwnTenant, platformSettings: initPS, overview, platform30Days,
 }: {
   initialTenants: Tenant[];
   allPlans: Plan[];
   hasOwnTenant: boolean;
   platformSettings: PlatformSettings;
   overview: Overview;
+  platform30Days?: Platform30Days;
 }) {
   const router = useRouter();
   const { message, show } = useToast();
@@ -175,6 +184,36 @@ export default function AdminShell({
           <Stat label="AI replies this month" value={overview.ai_replies_month ?? 0} />
           <Stat label="Est. MRR (QAR)" value={Number(overview.mrr_qar ?? 0).toFixed(0)} />
         </div>
+
+        {platform30Days && (
+          <div className="bg-panel border border-line rounded-lg p-4">
+            <p className="text-xs font-semibold text-ink-soft uppercase tracking-wider mb-3">
+              Platform Activity (Last 30 days)
+            </p>
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 text-sm">
+              <div>
+                <p className="text-xs text-ink-soft">Messages in</p>
+                <p className="text-lg font-semibold tabular mt-0.5">{platform30Days.messages_in}</p>
+              </div>
+              <div>
+                <p className="text-xs text-ink-soft">Bot replies</p>
+                <p className="text-lg font-semibold tabular mt-0.5">{platform30Days.bot_replies}</p>
+              </div>
+              <div>
+                <p className="text-xs text-ink-soft">New contacts</p>
+                <p className="text-lg font-semibold tabular mt-0.5">{platform30Days.new_contacts}</p>
+              </div>
+              <div>
+                <p className="text-xs text-ink-soft">Bookings</p>
+                <p className="text-lg font-semibold tabular mt-0.5">{platform30Days.bookings_created}</p>
+              </div>
+              <div>
+                <p className="text-xs text-ink-soft">Ad leads</p>
+                <p className="text-lg font-semibold tabular mt-0.5">{platform30Days.ad_leads}</p>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* ── Platform settings ── */}

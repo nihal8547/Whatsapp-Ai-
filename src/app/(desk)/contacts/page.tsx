@@ -18,6 +18,7 @@ export default async function ContactsPage({
   const contacts = await q(
     `SELECT c.phone, COALESCE(NULLIF(c.name,''),'') AS name, c.needs_human, c.bot_enabled,
             c.last_message_at, COALESCE(um.summary,'') AS summary,
+            c.lead_source, c.first_ad_title,
             (SELECT count(*) FROM wa_appointments a
               WHERE a.tenant_id = c.tenant_id AND a.phone = c.phone AND a.status = 'confirmed') AS bookings
        FROM wa_contacts c
@@ -57,6 +58,9 @@ export default async function ContactsPage({
                     <div className="min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <p className="font-medium">{c.name || "Unknown"}</p>
+                        {c.lead_source === "ad" && (
+                          <Tag tone="good">From ad: {c.first_ad_title || "Ad"}</Tag>
+                        )}
                         {c.needs_human && <Tag tone="warn">Wants a person</Tag>}
                         {!c.bot_enabled && !c.needs_human && <Tag tone="neutral">Assistant off</Tag>}
                       </div>

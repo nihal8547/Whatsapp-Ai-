@@ -1,0 +1,74 @@
+{
+  "code": "clinic",
+  "name": "Clinic / Medical Practice",
+  "modules": ["appointments", "resources", "faq", "media"],
+  "labels": {
+    "appointment": "Appointment",
+    "appointments": "Appointments",
+    "resource": "Doctor",
+    "customer": "Patient",
+    "customers": "Patients"
+  },
+  "persona_rules": "- NEVER give medical advice, diagnosis, or prescription/drug recommendations.\n- If the message mentions an emergency (chest pain, severe bleeding, breathing trouble, unconsciousness, accident), immediately reply with the clinic emergency line from the FAQ and call request_human.\n- Ask only the minimum health details necessary (reason for visit in one brief sentence).\n- Never promise a doctor or a time slot that tools did not explicitly return.",
+  "defaults": {
+    "persona": "You are the medical front desk assistant. You help patients book appointments with doctors, check consultation hours, and find clinic information.",
+    "hours": [
+      { "weekday": 0, "open": "09:00", "close": "18:00", "closed": false },
+      { "weekday": 1, "open": "09:00", "close": "18:00", "closed": false },
+      { "weekday": 2, "open": "09:00", "close": "18:00", "closed": false },
+      { "weekday": 3, "open": "09:00", "close": "18:00", "closed": false },
+      { "weekday": 4, "open": "09:00", "close": "18:00", "closed": false },
+      { "weekday": 5, "open": "09:00", "close": "18:00", "closed": true },
+      { "weekday": 6, "open": "09:00", "close": "18:00", "closed": true }
+    ],
+    "services": [
+      { "name": "General Consultation", "duration_min": 30 },
+      { "name": "Specialist Consultation", "duration_min": 45 },
+      { "name": "Follow-up Consultation", "duration_min": 20 },
+      { "name": "Routine Health Screening", "duration_min": 60 }
+    ],
+    "categories": ["General Medicine", "Specialist Clinics", "Diagnostics & Lab", "Health Screenings"],
+    "faqs": [
+      {
+        "question": "What is the emergency contact number?",
+        "answer": "For life-threatening medical emergencies, please call emergency services immediately or contact our emergency hotline at [ADD EMERGENCY PHONE NUMBER]."
+      },
+      {
+        "question": "Where is the clinic located?",
+        "answer": "Our clinic is located at [ADD CLINIC ADDRESS AND LANDMARK]."
+      },
+      {
+        "question": "What are your operating hours?",
+        "answer": "We are open [ADD REGULAR CONSULTATION DAYS AND HOURS]."
+      },
+      {
+        "question": "Do you accept health insurance?",
+        "answer": "We accept major insurance providers including [ADD ACCEPTED INSURANCE NETWORKS]. Please bring your insurance card and Qatar ID."
+      },
+      {
+        "question": "What should I bring for my first consultation?",
+        "answer": "Please bring a valid photo ID (QID/Passport), insurance card, and any relevant prior medical records or current medications [ADD DETAILS]."
+      },
+      {
+        "question": "What is your cancellation and rescheduling policy?",
+        "answer": "Appointments can be cancelled or rescheduled up to [ADD CANCELLATION NOTICE PERIOD, e.g. 4 hours] prior to the scheduled time."
+      },
+      {
+        "question": "Is parking available at the clinic?",
+        "answer": "Yes, visitor parking is available at [ADD PARKING LOCATION OR VALET DETAILS]."
+      },
+      {
+        "question": "How do I receive lab and test results?",
+        "answer": "Routine test results are available within [ADD TIMELINE, e.g. 24-48 hours] and can be accessed via [ADD PATIENT PORTAL OR WHATSAPP NOTIFICATION]."
+      },
+      {
+        "question": "Can I request a specific doctor?",
+        "answer": "Yes, when booking please mention your preferred doctor: [ADD AVAILABLE DOCTOR NAMES]."
+      }
+    ],
+    "reminder_24h": "Hi {name} 👋 Just a reminder: your {service} appointment is scheduled for tomorrow at {time}. Reply here if you need to reschedule.",
+    "reminder_1h": "Hi {name}, see you in about an hour for your {service} at {time}! Please arrive 10 minutes early with your ID.",
+    "followup": "Hi {name} 👋 Just checking in following your visit. How are you feeling today?",
+    "review": "Hi {name}, thank you for visiting us. Could you take a moment to share your feedback about your visit? {link}"
+  }
+}

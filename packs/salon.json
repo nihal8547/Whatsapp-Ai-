@@ -1,0 +1,76 @@
+{
+  "code": "salon",
+  "name": "Salon / Spa",
+  "modules": ["appointments", "resources", "catalog", "faq", "media"],
+  "labels": {
+    "resource": "Stylist",
+    "appointment": "Appointment",
+    "appointments": "Appointments",
+    "catalog": "Services",
+    "item": "Service",
+    "customer": "Client",
+    "customers": "Clients"
+  },
+  "persona_rules": "- Inquire which specific service(s) the client desires and if they have a preferred stylist or therapist.\n- Accurately calculate and add the combined durations when multiple services are selected.\n- Always share the late arrival (grace period) and cancellation policy from the FAQ before finalizing bookings.",
+  "defaults": {
+    "persona": "You are the salon receptionist. You help clients book beauty, hair, and spa treatments, match them with their favorite stylists, and coordinate treatment timings.",
+    "hours": [
+      { "weekday": 0, "open": "09:00", "close": "18:00", "closed": false },
+      { "weekday": 1, "open": "09:00", "close": "18:00", "closed": false },
+      { "weekday": 2, "open": "09:00", "close": "18:00", "closed": false },
+      { "weekday": 3, "open": "09:00", "close": "18:00", "closed": false },
+      { "weekday": 4, "open": "09:00", "close": "18:00", "closed": false },
+      { "weekday": 5, "open": "09:00", "close": "18:00", "closed": true },
+      { "weekday": 6, "open": "09:00", "close": "18:00", "closed": true }
+    ],
+    "services": [
+      { "name": "Signature Haircut & Styling", "duration_min": 45 },
+      { "name": "Full Hair Coloring / Balayage", "duration_min": 90 },
+      { "name": "Hydrating Facial Treatment", "duration_min": 60 },
+      { "name": "Classic Manicure & Pedicure", "duration_min": 60 }
+    ],
+    "categories": ["Hair Care & Cuts", "Coloring & Highlights", "Facials & Skin Therapy", "Nails & Pedicures", "Massage & Body Spa", "Bridal Packages"],
+    "faqs": [
+      {
+        "question": "What is your late arrival and grace period policy?",
+        "answer": "We offer a [ADD GRACE PERIOD, e.g. 15-minute] grace period. Beyond that, treatments may be shortened or rescheduled to respect upcoming clients [ADD DETAILS]."
+      },
+      {
+        "question": "What is your appointment cancellation policy?",
+        "answer": "Please provide at least [ADD CANCELLATION NOTICE, e.g. 24 hours] advance notice for cancellations or rescheduling."
+      },
+      {
+        "question": "Where is the salon located?",
+        "answer": "Our salon & spa is located at [ADD SALON ADDRESS AND LANDMARK]."
+      },
+      {
+        "question": "Can I request a specific senior stylist or aesthetician?",
+        "answer": "Yes! When booking, let us know your preferred stylist name: [ADD AVAILABLE STYLIST NAMES]."
+      },
+      {
+        "question": "Do you accept walk-in clients?",
+        "answer": "Walk-ins are accommodated when slots open up, but appointments are recommended to avoid wait times [ADD DETAILS]."
+      },
+      {
+        "question": "Do you provide bridal or group package bookings?",
+        "answer": "Yes, we create custom bridal, bridesmaid, and group pampering packages with dedicated private suites [ADD DETAILS]."
+      },
+      {
+        "question": "What professional haircare and skincare product brands do you use?",
+        "answer": "We use premium international brands including [ADD BRAND NAMES, e.g. Kérastase, L'Oréal Professionnel, Dermalogica]."
+      },
+      {
+        "question": "Is parking available nearby?",
+        "answer": "Yes, customer parking and valet service are available [ADD PARKING DETAILS]."
+      },
+      {
+        "question": "What payment methods are accepted?",
+        "answer": "We accept cash, debit cards, Visa/Mastercard credit cards, and Apple Pay [ADD DETAILS]."
+      }
+    ],
+    "reminder_24h": "Hi {name} 👋 Just a reminder: your pampering appointment for {service} is tomorrow at {time} with our team.",
+    "reminder_1h": "Hi {name}, see you in 1 hour at {time} for your {service}! Please arrive 5 minutes early to unwind.",
+    "followup": "Hi {name} 👋 We hope you love your new look! How does your hair and skin feel after today's appointment?",
+    "review": "Hi {name}, thank you for visiting our salon! Could you share your experience in a quick Google review? {link}"
+  }
+}

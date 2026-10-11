@@ -10,7 +10,7 @@ export default async function AdminPage() {
   if (!session) redirect("/login");
   if (!session.superAdmin) redirect("/desk");
 
-  const [tenants, plans, platformSettings, overview] = await Promise.all([
+  const [tenants, plans, platformSettings, overview, platform30Days] = await Promise.all([
     q(
       `SELECT t.id, t.name, t.slug, t.status, t.trial_ends_at, t.created_at,
               t.business_type,
@@ -46,6 +46,22 @@ export default async function AdminPage() {
            FROM wa_tenants t JOIN wa_plans p ON p.id = t.plan_id
           WHERE t.status = 'active')                                   AS mrr_qar
     `),
+    one<{
+      messages_in: number;
+      bot_replies: number;
+      new_contacts: number;
+      bookings_created: number;
+      ad_leads: number;
+    }>(`
+      SELECT
+        COALESCE(SUM(messages_in), 0)::int AS messages_in,
+        COALESCE(SUM(bot_replies), 0)::int AS bot_replies,
+        COALESCE(SUM(new_contacts), 0)::int AS new_contacts,
+        COALESCE(SUM(bookings_created), 0)::int AS bookings_created,
+        COALESCE(SUM(ad_leads), 0)::int AS ad_leads
+      FROM wa_v_daily_overview
+      WHERE day >= (CURRENT_DATE - 29)
+    `),
   ]);
 
   return (
@@ -58,6 +74,9 @@ export default async function AdminPage() {
         webhook_secret_enforced: false, evolution_url: "", webhook_url: "",
       }}
       overview={overview ?? {}}
+      platform30Days={platform30Days ?? {
+        messages_in: 0, bot_replies: 0, new_contacts: 0, bookings_created: 0, ad_leads: 0,
+      }}
     />
   );
 }

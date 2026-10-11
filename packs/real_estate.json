@@ -1,0 +1,76 @@
+{
+  "code": "real_estate",
+  "name": "Real Estate",
+  "modules": ["leads", "catalog", "appointments", "faq", "media"],
+  "labels": {
+    "appointment": "Site visit",
+    "appointments": "Site visits",
+    "catalog": "Listings",
+    "item": "Property",
+    "lead": "Enquiry",
+    "leads": "Enquiries",
+    "customer": "Client",
+    "customers": "Clients"
+  },
+  "persona_rules": "- Ask whether the client wants to buy or rent, preferred location/area, budget range, and number of bedrooms.\n- Show at most 3 matching property listings at a time to keep choices clear.\n- Never promise price discounts, lease terms, or contract negotiation details.\n- Proactively offer a site visit appointment for shortlisted properties.\n- Immediately hand over hot leads or serious buyers to a licensed real estate agent.",
+  "defaults": {
+    "persona": "You are a real estate advisory assistant helping prospective buyers and tenants discover properties, schedule site visits, and connect with property consultants.",
+    "hours": [
+      { "weekday": 0, "open": "09:00", "close": "18:00", "closed": false },
+      { "weekday": 1, "open": "09:00", "close": "18:00", "closed": false },
+      { "weekday": 2, "open": "09:00", "close": "18:00", "closed": false },
+      { "weekday": 3, "open": "09:00", "close": "18:00", "closed": false },
+      { "weekday": 4, "open": "09:00", "close": "18:00", "closed": false },
+      { "weekday": 5, "open": "09:00", "close": "18:00", "closed": true },
+      { "weekday": 6, "open": "09:00", "close": "18:00", "closed": true }
+    ],
+    "services": [
+      { "name": "Property Site Visit", "duration_min": 60 },
+      { "name": "Buyer / Tenant Consultation", "duration_min": 30 },
+      { "name": "Property Valuation Review", "duration_min": 45 }
+    ],
+    "categories": ["Apartments for Rent", "Apartments for Sale", "Villas & Compounds", "Commercial Spaces", "Off-Plan Investments"],
+    "faqs": [
+      {
+        "question": "What documents do I need to rent a property?",
+        "answer": "To sign a residential tenancy lease, you will need a valid Qatar ID/residence permit, salary certificate or bank statement, and post-dated cheques [ADD DETAILS]."
+      },
+      {
+        "question": "What is the standard agency fee or commission?",
+        "answer": "Standard agency commission is [ADD COMMISSION RATE, e.g. half a month rent or 2% for sales] payable upon lease signing."
+      },
+      {
+        "question": "Can foreigners purchase property in Qatar?",
+        "answer": "Yes, freehold and 99-year leasehold ownership is available in designated zones like The Pearl, Lusail, and West Bay [ADD DETAILS]."
+      },
+      {
+        "question": "How do I schedule a site visit?",
+        "answer": "You can schedule a site visit directly through this chat by sharing your preferred date, time, and property reference [ADD DETAILS]."
+      },
+      {
+        "question": "Are utilities included in rental prices?",
+        "answer": "Kahramaa (water & electricity) and internet inclusion depends on the listing type (fully furnished vs semi-furnished) [ADD DETAILS]."
+      },
+      {
+        "question": "What is the security deposit for residential rentals?",
+        "answer": "Typically a one-month refundable security deposit is held at the start of the lease agreement [ADD DETAILS]."
+      },
+      {
+        "question": "Where is your real estate agency located?",
+        "answer": "Our agency office is located at [ADD OFFICE ADDRESS]."
+      },
+      {
+        "question": "Can you help list my property for sale or rent?",
+        "answer": "Yes, our listing team can photograph and market your property across our network [ADD DETAILS]."
+      },
+      {
+        "question": "Do you handle property management?",
+        "answer": "We offer complete property management services including tenant screening, maintenance, and rent collection [ADD DETAILS]."
+      }
+    ],
+    "reminder_24h": "Hi {name} 👋 Reminder: your property site visit is scheduled for tomorrow at {time}. Our agent will meet you at the location.",
+    "reminder_1h": "Hi {name}, our property consultant will meet you in 1 hour for the site visit at {time}. See you shortly!",
+    "followup": "Hi {name} 👋 Just checking in after the property viewing. Did you like the unit, or would you like to see alternative options?",
+    "review": "Hi {name}, thank you for touring properties with us! Would you take a moment to review our service? {link}"
+  }
+}

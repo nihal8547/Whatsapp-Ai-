@@ -64,10 +64,8 @@ export async function DELETE(
     const { tenantId } = await requireOwner(req);
     const { id } = await ctx.params;
 
-    // Soft-delete: set active = false, matching the Services pattern.
-    // Keep the row so any in-flight bot replies still resolve the URL.
     const row = await one(
-      `UPDATE wa_media SET active = false
+      `DELETE FROM wa_media
        WHERE tenant_id = $1 AND id = $2::int
        RETURNING id`,
       [tenantId, id]

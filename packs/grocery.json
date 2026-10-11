@@ -1,0 +1,74 @@
+{
+  "code": "grocery",
+  "name": "Grocery / Supermarket",
+  "modules": ["orders", "catalog", "faq", "media"],
+  "labels": {
+    "catalog": "Products",
+    "item": "Product",
+    "order": "Order",
+    "orders": "Orders",
+    "customer": "Customer",
+    "customers": "Customers"
+  },
+  "persona_rules": "- Retrieve product prices, availability, and stock strictly from tools.\n- Confirm exact quantities and suggest approved substitute brands for any out-of-stock items.\n- Always confirm the complete delivery address, contact number, and total order sum before placing an order.",
+  "defaults": {
+    "persona": "You are a helpful grocery ordering assistant helping customers browse supermarket essentials, check product availability, and place delivery orders.",
+    "hours": [
+      { "weekday": 0, "open": "09:00", "close": "18:00", "closed": false },
+      { "weekday": 1, "open": "09:00", "close": "18:00", "closed": false },
+      { "weekday": 2, "open": "09:00", "close": "18:00", "closed": false },
+      { "weekday": 3, "open": "09:00", "close": "18:00", "closed": false },
+      { "weekday": 4, "open": "09:00", "close": "18:00", "closed": false },
+      { "weekday": 5, "open": "09:00", "close": "18:00", "closed": true },
+      { "weekday": 6, "open": "09:00", "close": "18:00", "closed": true }
+    ],
+    "services": [
+      { "name": "Standard Home Delivery", "duration_min": 60 },
+      { "name": "Express Delivery Window", "duration_min": 30 },
+      { "name": "Store Pickup / Click & Collect", "duration_min": 15 }
+    ],
+    "categories": ["Fresh Fruits & Vegetables", "Dairy & Eggs", "Beverages & Juices", "Bakery & Breads", "Meat & Seafood", "Pantry & Spices"],
+    "faqs": [
+      {
+        "question": "What is the minimum order value for free delivery?",
+        "answer": "Free delivery applies to orders above [ADD MINIMUM ORDER AMOUNT, e.g. QAR 100]. For smaller orders, a delivery fee of [ADD DELIVERY FEE] applies."
+      },
+      {
+        "question": "Which areas do you deliver to?",
+        "answer": "We currently deliver to [ADD COVERAGE NEIGHBORHOODS / ZONES]."
+      },
+      {
+        "question": "How long does home delivery take?",
+        "answer": "Standard delivery takes [ADD STANDARD DELIVERY TIME, e.g. 60-90 minutes], while express delivery arrives within [ADD EXPRESS TIME]."
+      },
+      {
+        "question": "What payment methods are supported on delivery?",
+        "answer": "We accept cash on delivery, card on delivery via portable POS machines, and online payment links [ADD DETAILS]."
+      },
+      {
+        "question": "What happens if an item I ordered is out of stock?",
+        "answer": "Our shopper will propose an equivalent replacement brand or remove the item and deduct its cost before dispatch [ADD DETAILS]."
+      },
+      {
+        "question": "Where is the physical supermarket located?",
+        "answer": "Our main store is located at [ADD STORE ADDRESS AND TIMINGS]."
+      },
+      {
+        "question": "What is your return policy for perishable fresh food?",
+        "answer": "Fresh fruits, vegetables, and dairy can be inspected at delivery; issues reported within [ADD TIMELINE, e.g. 4 hours] will be refunded or replaced immediately."
+      },
+      {
+        "question": "Can I pick up my order in-store?",
+        "answer": "Yes, choose Store Pickup and your groceries will be packed and waiting for you at customer service [ADD DETAILS]."
+      },
+      {
+        "question": "Do you sell organic or gluten-free specialty products?",
+        "answer": "Yes, we stock a wide range of organic, gluten-free, and vegan specialty brands in our organic aisle [ADD DETAILS]."
+      }
+    ],
+    "reminder_24h": "Hi {name} 👋 Your grocery delivery slot is scheduled for tomorrow at {time}.",
+    "reminder_1h": "Hi {name}, your grocery order is packed and our driver is on the way for delivery around {time}!",
+    "followup": "Hi {name} 👋 Just checking in to make sure your grocery order arrived fresh and complete. Need anything else today?",
+    "review": "Hi {name}, thank you for ordering with us! How was your grocery delivery today? Please leave us a quick review: {link}"
+  }
+}

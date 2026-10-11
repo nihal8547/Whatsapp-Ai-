@@ -35,9 +35,8 @@ export async function DELETE(req: Request, ctx: { params: Promise<{ id: string }
   try {
     const { tenantId } = await requireOwner(req);
     const { id } = await ctx.params;
-    // Keep the row so past appointments still resolve; just retire it.
     const row = await one(
-      `UPDATE wa_services SET active = false WHERE tenant_id = $1 AND id = $2::int RETURNING id`,
+      `DELETE FROM wa_services WHERE tenant_id = $1 AND id = $2::int RETURNING id`,
       [tenantId, id]
     );
     if (!row) return Response.json({ ok: false, error: "not_found" }, { status: 404 });

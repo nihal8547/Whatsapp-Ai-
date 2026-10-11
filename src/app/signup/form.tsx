@@ -64,7 +64,7 @@ export default function SignupForm() {
       );
       return;
     }
-    router.push("/whatsapp");
+    router.push("/onboarding");
     router.refresh();
   }
 

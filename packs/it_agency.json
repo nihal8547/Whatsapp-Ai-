@@ -1,0 +1,76 @@
+{
+  "code": "it_agency",
+  "name": "IT Agency / Tech Company",
+  "modules": ["leads", "quotes", "appointments", "faq", "media", "catalog"],
+  "labels": {
+    "appointment": "Consultation",
+    "appointments": "Consultations",
+    "lead": "Project enquiry",
+    "leads": "Project enquiries",
+    "catalog": "Services",
+    "item": "Service",
+    "customer": "Client",
+    "customers": "Clients"
+  },
+  "persona_rules": "- Never quote a fixed price upfront.\n- Gather key details: project requirements, must-have features, target timeline, and approximate budget range.\n- Offer a 30-minute discovery consultation call with our solution architects.",
+  "defaults": {
+    "persona": "You are a knowledgeable technical consultant at our digital technology agency. You assist prospective clients with project inquiries, technical capabilities, and consultation bookings.",
+    "hours": [
+      { "weekday": 0, "open": "09:00", "close": "18:00", "closed": false },
+      { "weekday": 1, "open": "09:00", "close": "18:00", "closed": false },
+      { "weekday": 2, "open": "09:00", "close": "18:00", "closed": false },
+      { "weekday": 3, "open": "09:00", "close": "18:00", "closed": false },
+      { "weekday": 4, "open": "09:00", "close": "18:00", "closed": false },
+      { "weekday": 5, "open": "09:00", "close": "18:00", "closed": true },
+      { "weekday": 6, "open": "09:00", "close": "18:00", "closed": true }
+    ],
+    "services": [
+      { "name": "Initial Discovery Call", "duration_min": 30 },
+      { "name": "Technical Consultation", "duration_min": 45 },
+      { "name": "Project Scope & Architecture Review", "duration_min": 60 }
+    ],
+    "categories": ["Web & App Development", "AI & Automation Solutions", "Cloud & DevOps", "UI/UX Product Design", "Maintenance & SLA Support"],
+    "faqs": [
+      {
+        "question": "What software and mobile technologies do you specialize in?",
+        "answer": "We build scalable systems using Next.js, React, Node.js, Python, PostgreSQL, Flutter, iOS/Android, and AWS/GCP cloud architectures [ADD DETAILS]."
+      },
+      {
+        "question": "How do you estimate software development costs?",
+        "answer": "Pricing depends on complexity, feature scope, third-party integrations, and timeline. After a brief discovery call, we prepare a detailed milestone proposal [ADD DETAILS]."
+      },
+      {
+        "question": "How long does a typical project take to launch?",
+        "answer": "An MVP usually ships within [ADD MVP TIMELINE, e.g. 4-8 weeks], while larger enterprise platforms take [ADD ENTERPRISE TIMELINE]."
+      },
+      {
+        "question": "Do you provide post-launch support and maintenance?",
+        "answer": "Yes, we offer monthly SLA agreements covering security patching, bug fixes, uptime monitoring, and feature enhancements [ADD SLA PLANS]."
+      },
+      {
+        "question": "Can you sign a Non-Disclosure Agreement (NDA) before we discuss details?",
+        "answer": "Yes, we are pleased to sign a mutual NDA before reviewing proprietary requirements [ADD DETAILS]."
+      },
+      {
+        "question": "Where is your engineering team and office located?",
+        "answer": "Our headquarters is located at [ADD OFFICE ADDRESS] with distributed development teams [ADD DETAILS]."
+      },
+      {
+        "question": "Do you work on fixed-price or time-and-materials contracts?",
+        "answer": "We offer fixed-scope sprints for well-defined deliverables and dedicated monthly agile teams for evolving products [ADD DETAILS]."
+      },
+      {
+        "question": "Can you take over an existing codebase or legacy system?",
+        "answer": "Yes, we begin with a technical audit to evaluate architecture, code quality, and security before continuing development [ADD DETAILS]."
+      },
+      {
+        "question": "What is the next step to get started?",
+        "answer": "Let's book a 30-minute discovery call to discuss your goals, requirements, and provide a roadmap [ADD DETAILS]."
+      }
+    ],
+    "reminder_24h": "Hi {name} 👋 Just a reminder: your project consultation call is scheduled for tomorrow at {time}.",
+    "reminder_1h": "Hi {name}, our technical team is ready for your consultation call in 1 hour at {time}. See you soon!",
+    "followup": "Hi {name} 👋 Just following up on your project enquiry. Have you had a chance to review the scope or would you like to speak with our tech lead?",
+    "review": "Hi {name}, thank you for collaborating with our agency! Would you mind sharing a quick testimonial or review of our team? {link}"
+  }
+}

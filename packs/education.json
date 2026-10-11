@@ -1,0 +1,76 @@
+{
+  "code": "education",
+  "name": "Education / Coaching",
+  "modules": ["leads", "catalog", "appointments", "faq", "media"],
+  "labels": {
+    "catalog": "Courses",
+    "item": "Course",
+    "appointment": "Demo class",
+    "appointments": "Demo classes",
+    "lead": "Admission enquiry",
+    "leads": "Admission enquiries",
+    "customer": "Student",
+    "customers": "Students"
+  },
+  "persona_rules": "- Inquire about the student's target course or learning goal and their current skill/academic level.\n- Provide tuition fees and installment options strictly from the catalog.\n- Proactively offer a free demo class or campus assessment session.\n- All official admission, prerequisite approvals, and scholarship decisions are made by admissions staff.",
+  "defaults": {
+    "persona": "You are the admissions counselor at our educational institute. You help prospective students and parents explore courses, schedule demo classes, and learn about batch schedules.",
+    "hours": [
+      { "weekday": 0, "open": "09:00", "close": "18:00", "closed": false },
+      { "weekday": 1, "open": "09:00", "close": "18:00", "closed": false },
+      { "weekday": 2, "open": "09:00", "close": "18:00", "closed": false },
+      { "weekday": 3, "open": "09:00", "close": "18:00", "closed": false },
+      { "weekday": 4, "open": "09:00", "close": "18:00", "closed": false },
+      { "weekday": 5, "open": "09:00", "close": "18:00", "closed": true },
+      { "weekday": 6, "open": "09:00", "close": "18:00", "closed": true }
+    ],
+    "services": [
+      { "name": "Free Demo Class", "duration_min": 45 },
+      { "name": "Academic Counseling Session", "duration_min": 30 },
+      { "name": "Placement Level Assessment", "duration_min": 60 }
+    ],
+    "categories": ["Language Programs", "Standardized Test Prep", "Professional Bootcamps", "School Tutoring & STEM", "Kids Creative Programs"],
+    "faqs": [
+      {
+        "question": "What is the duration of your training courses?",
+        "answer": "Courses range from [ADD DURATION, e.g. 4-week crash courses to 6-month diploma programs] depending on the subject."
+      },
+      {
+        "question": "Are classes conducted online, in-person, or hybrid?",
+        "answer": "We provide both interactive online live sessions and in-person classroom batches at our campus [ADD DETAILS]."
+      },
+      {
+        "question": "Do students receive an accredited certificate upon completion?",
+        "answer": "Yes, learners receive a recognized certificate of completion and qualification transcript [ADD ACCREDITATION DETAILS]."
+      },
+      {
+        "question": "Can I attend a free demo trial class before enrolling?",
+        "answer": "Yes! You can book a free 45-minute demo class with our subject trainer right here on WhatsApp [ADD DETAILS]."
+      },
+      {
+        "question": "What are the course tuition fees and payment options?",
+        "answer": "Tuition fees depend on the selected course level. Flexible monthly installment plans are available [ADD FEE DETAILS]."
+      },
+      {
+        "question": "What is the student-to-teacher ratio per batch?",
+        "answer": "We maintain small batch sizes capped at [ADD CLASS SIZE, e.g. 10-15 students] to ensure individual attention."
+      },
+      {
+        "question": "Where is the coaching institute located?",
+        "answer": "Our main training center is located at [ADD CAMPUS ADDRESS]."
+      },
+      {
+        "question": "What is your refund and withdrawal policy?",
+        "answer": "Full refund is applicable if requested [ADD REFUND DEADLINE, e.g. before the second lecture of the batch]."
+      },
+      {
+        "question": "What prerequisites or background are required to enroll?",
+        "answer": "Prerequisites depend on the course level. Complete beginners are welcome in foundational tracks [ADD DETAILS]."
+      }
+    ],
+    "reminder_24h": "Hi {name} 👋 Just a reminder: your demo class is scheduled for tomorrow at {time}. We look forward to meeting you!",
+    "reminder_1h": "Hi {name}, your instructor will be ready in 1 hour at {time}. Join us on time with your notebook!",
+    "followup": "Hi {name} 👋 How did you find your demo class? Would you like to reserve a seat in the upcoming batch?",
+    "review": "Hi {name}, thank you for learning with us! Could you take a moment to review our institute and trainers? {link}"
+  }
+}

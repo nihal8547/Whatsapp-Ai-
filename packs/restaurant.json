@@ -1,0 +1,77 @@
+{
+  "code": "restaurant",
+  "name": "Restaurant / Cafe",
+  "modules": ["orders", "catalog", "table_booking", "resources", "faq", "media"],
+  "labels": {
+    "catalog": "Menu",
+    "item": "Dish",
+    "appointment": "Reservation",
+    "appointments": "Reservations",
+    "resource": "Table",
+    "order": "Food Order",
+    "orders": "Food Orders",
+    "customer": "Guest",
+    "customers": "Guests"
+  },
+  "persona_rules": "- Present menu items, specials, and prices strictly from tools.\n- Never accept orders for items marked as sold out or out of stock.\n- Immediately escalate any allergy, gluten, or severe dietary inquiries to a human staff member.\n- Table reservations require date, preferred time, and party size (number of guests).",
+  "defaults": {
+    "persona": "You are the welcoming host and ordering assistant at our restaurant and cafe. You assist guests with reservations, menu queries, and takeout orders.",
+    "hours": [
+      { "weekday": 0, "open": "09:00", "close": "18:00", "closed": false },
+      { "weekday": 1, "open": "09:00", "close": "18:00", "closed": false },
+      { "weekday": 2, "open": "09:00", "close": "18:00", "closed": false },
+      { "weekday": 3, "open": "09:00", "close": "18:00", "closed": false },
+      { "weekday": 4, "open": "09:00", "close": "18:00", "closed": false },
+      { "weekday": 5, "open": "09:00", "close": "18:00", "closed": true },
+      { "weekday": 6, "open": "09:00", "close": "18:00", "closed": true }
+    ],
+    "services": [
+      { "name": "Table Reservation", "duration_min": 90 },
+      { "name": "Private Dining Suite", "duration_min": 120 },
+      { "name": "Takeaway Pickup Window", "duration_min": 20 }
+    ],
+    "categories": ["Starters & Appetizers", "Main Courses", "Pasta & Pizza", "Desserts", "Hot & Cold Beverages", "Chef Specials"],
+    "faqs": [
+      {
+        "question": "Where is the restaurant located?",
+        "answer": "We are located at [ADD RESTAURANT ADDRESS AND NEAREST METRO/LANDMARK]."
+      },
+      {
+        "question": "What are your dine-in opening hours?",
+        "answer": "Our kitchen is open [ADD OPENING HOURS FOR LUNCH AND DINNER]."
+      },
+      {
+        "question": "Do I need a reservation or do you welcome walk-ins?",
+        "answer": "Walk-ins are warmly welcome, though we strongly recommend booking in advance for weekends and large parties [ADD DETAILS]."
+      },
+      {
+        "question": "How do you handle dietary allergies and vegetarian options?",
+        "answer": "Our menu features vegetarian, vegan, and gluten-free choices clearly marked. For severe allergies, our chef will personally verify ingredients [ADD DETAILS]."
+      },
+      {
+        "question": "Is all food served halal certified?",
+        "answer": "Yes, 100% of our meats and ingredients are certified halal [ADD DETAILS]."
+      },
+      {
+        "question": "Is outdoor or terrace seating available?",
+        "answer": "Yes, we feature outdoor patio seating during pleasant weather seasons [ADD DETAILS]."
+      },
+      {
+        "question": "Do you host private corporate events or birthday celebrations?",
+        "answer": "Yes, our private dining section accommodates up to [ADD CAPACITY] guests with custom set menus [ADD DETAILS]."
+      },
+      {
+        "question": "Is customer parking or valet service provided?",
+        "answer": "Complimentary valet parking is available right in front of the main entrance [ADD DETAILS]."
+      },
+      {
+        "question": "Can I order food for takeout or home delivery?",
+        "answer": "Yes, you can place a takeaway order directly through this chat or find us on delivery platforms [ADD APPS/DETAILS]."
+      }
+    ],
+    "reminder_24h": "Hi {name} 👋 Just a reminder: your dining reservation for {party_size} guests is confirmed for tomorrow at {time}.",
+    "reminder_1h": "Hi {name}, your table is being prepared! We look forward to hosting you in 1 hour at {time}.",
+    "followup": "Hi {name} 👋 We hope you had a delicious dining experience with us today! Did everything meet your expectations?",
+    "review": "Hi {name}, thank you for dining with us! Would you mind leaving us a quick review on Google? {link}"
+  }
+}

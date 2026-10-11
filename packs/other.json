@@ -1,0 +1,70 @@
+{
+  "code": "other",
+  "name": "General Business",
+  "modules": ["appointments", "leads", "faq", "media"],
+  "labels": {
+    "appointment": "Appointment",
+    "appointments": "Appointments",
+    "lead": "Enquiry",
+    "leads": "Enquiries",
+    "customer": "Customer",
+    "customers": "Customers"
+  },
+  "persona_rules": "- Maintain a friendly, helpful, and professional staff persona at all times.\n- Ask clearly what specific assistance or service the customer needs.\n- Offer to schedule an appointment or promptly hand over to a human team member.",
+  "defaults": {
+    "persona": "You are the helpful virtual assistant for our business. You greet customers warmly, answer frequently asked questions, schedule appointments, and connect clients with our team.",
+    "hours": [
+      { "weekday": 0, "open": "09:00", "close": "18:00", "closed": false },
+      { "weekday": 1, "open": "09:00", "close": "18:00", "closed": false },
+      { "weekday": 2, "open": "09:00", "close": "18:00", "closed": false },
+      { "weekday": 3, "open": "09:00", "close": "18:00", "closed": false },
+      { "weekday": 4, "open": "09:00", "close": "18:00", "closed": false },
+      { "weekday": 5, "open": "09:00", "close": "18:00", "closed": true },
+      { "weekday": 6, "open": "09:00", "close": "18:00", "closed": true }
+    ],
+    "services": [
+      { "name": "General Consultation", "duration_min": 30 },
+      { "name": "Discovery Meeting", "duration_min": 30 },
+      { "name": "Support & Follow-up Session", "duration_min": 30 }
+    ],
+    "categories": ["General Services", "Consulting", "Special Inquiries"],
+    "faqs": [
+      {
+        "question": "What services do you offer?",
+        "answer": "We provide professional services tailored to your needs [ADD SERVICE OVERVIEW]."
+      },
+      {
+        "question": "What are your business hours?",
+        "answer": "We are open [ADD BUSINESS WORKING DAYS AND HOURS]."
+      },
+      {
+        "question": "Where is your office located?",
+        "answer": "Our office is located at [ADD OFFICE ADDRESS AND LANDMARK]."
+      },
+      {
+        "question": "How can I book an appointment?",
+        "answer": "You can book directly in this chat by selecting a service and choosing an available date and time slot [ADD DETAILS]."
+      },
+      {
+        "question": "How do I speak with a human support agent?",
+        "answer": "Simply reply with 'agent' or 'human' in this chat and a representative will connect with you during business hours [ADD DETAILS]."
+      },
+      {
+        "question": "What payment methods do you accept?",
+        "answer": "We accept bank transfers, credit/debit cards, and digital payment links [ADD DETAILS]."
+      },
+      {
+        "question": "What is your cancellation and rescheduling policy?",
+        "answer": "Please provide at least [ADD CANCELLATION NOTICE, e.g. 24 hours] notice to cancel or reschedule an appointment."
+      },
+      {
+        "question": "How can I submit feedback or a suggestion?",
+        "answer": "We value your input! You can share your feedback directly here or email [ADD FEEDBACK EMAIL]."
+      }
+    ],
+    "reminder_24h": "Hi {name} 👋 Just a reminder: your appointment is scheduled for tomorrow at {time}.",
+    "reminder_1h": "Hi {name}, see you in about an hour at {time}! Let us know if you have any questions before we meet.",
+    "followup": "Hi {name} 👋 Just following up to see if there's anything else we can assist you with today?",
+    "review": "Hi {name}, thank you for working with us! Would you mind taking a quick moment to leave us a review? {link}"
+  }
+}

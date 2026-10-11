@@ -32,11 +32,19 @@ const STATUS_TONES: Record<string, "good" | "warn" | "bad" | "neutral"> = {
   active: "good", trial: "warn", suspended: "bad", cancelled: "neutral",
 };
 
+type Last30Days = {
+  messages_in: number;
+  new_contacts: number;
+  bookings_created: number;
+  ad_leads: number;
+};
+
 export default function TenantDetail({
-  tenant: init, usage, counts, team, plans,
+  tenant: init, usage, counts, team, plans, last30Days,
 }: {
   tenant: Tenant; usage: UsageRow[]; counts: Counts;
   team: TeamMember[]; plans: Plan[];
+  last30Days?: Last30Days;
 }) {
   const router = useRouter();
   const { message, show } = useToast();
@@ -133,6 +141,38 @@ export default function TenantDetail({
             </div>
           ))}
         </div>
+
+        {/* ── Last 30 days activity box ── */}
+        {last30Days && (
+          <div className="bg-panel border border-line rounded-lg p-4">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-xs font-semibold text-ink-soft uppercase tracking-wider">
+                Activity (Last 30 days)
+              </h3>
+              <Link href={`/analytics?tenant=${tenant.id}`} className="text-xs text-pine hover:underline">
+                View full analytics →
+              </Link>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
+              <div>
+                <p className="text-xs text-ink-soft">Messages received</p>
+                <p className="text-xl font-semibold tabular mt-0.5">{last30Days.messages_in}</p>
+              </div>
+              <div>
+                <p className="text-xs text-ink-soft">New contacts</p>
+                <p className="text-xl font-semibold tabular mt-0.5">{last30Days.new_contacts}</p>
+              </div>
+              <div>
+                <p className="text-xs text-ink-soft">Bookings</p>
+                <p className="text-xl font-semibold tabular mt-0.5">{last30Days.bookings_created}</p>
+              </div>
+              <div>
+                <p className="text-xs text-ink-soft">Ad leads</p>
+                <p className="text-xl font-semibold tabular mt-0.5">{last30Days.ad_leads}</p>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="grid lg:grid-cols-2 gap-6">
           {/* ── Business info ── */}

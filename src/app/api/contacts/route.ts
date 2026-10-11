@@ -8,6 +8,7 @@ export async function GET(req: Request) {
     const contacts = await q(
       `SELECT c.phone, COALESCE(NULLIF(c.name,''),'') AS name, c.bot_enabled, c.needs_human,
               c.created_at, c.last_message_at,
+              c.lead_source, c.first_ad_title,
               COALESCE(um.summary,'') AS summary,
               (SELECT count(*) FROM wa_appointments a
                 WHERE a.tenant_id = c.tenant_id AND a.phone = c.phone AND a.status = 'confirmed') AS bookings

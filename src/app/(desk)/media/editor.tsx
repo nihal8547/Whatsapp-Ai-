@@ -118,7 +118,16 @@ export default function MediaEditor({
       body: JSON.stringify({ active: !item.active }),
     });
     await refresh();
-    show(item.active ? "Photo hidden from the assistant." : "Photo is live again.");
+    show(item.active ? "Photo disabled from the assistant." : "Photo enabled and live again.");
+  }
+
+  async function deleteMedia(item: MediaItem) {
+    if (!confirm(`Are you sure you want to permanently delete "${item.title}"?`)) return;
+    const res = await fetch(`/api/media/${item.id}`, { method: "DELETE" });
+    const data = await res.json();
+    if (!data.ok) return show("Could not delete that image.");
+    await refresh();
+    show("Photo deleted from the media library.");
   }
 
   const catLabel = (v: string) =>
@@ -173,9 +182,14 @@ export default function MediaEditor({
               <div className="p-3 flex-1 flex flex-col gap-1.5">
                 <div className="flex items-start justify-between gap-2">
                   <p className="font-medium text-sm leading-snug">{item.title}</p>
-                  <Tag tone={item.active ? catTone(item.category) : "neutral"}>
-                    {!item.active ? "hidden" : catLabel(item.category)}
-                  </Tag>
+                  <div className="flex items-center gap-1.5 flex-shrink-0">
+                    <Tag tone={item.active ? "good" : "neutral"}>
+                      {item.active ? "Enabled" : "Disabled"}
+                    </Tag>
+                    <Tag tone={catTone(item.category)}>
+                      {catLabel(item.category)}
+                    </Tag>
+                  </div>
                 </div>
 
                 {item.keywords.length > 0 && (
@@ -196,13 +210,24 @@ export default function MediaEditor({
                 )}
 
                 {!readOnly && (
-                  <div className="flex gap-2 mt-auto pt-2">
+                  <div className="flex items-center justify-between gap-2 mt-auto pt-3 border-t border-line/60">
                     <Button
                       variant="quiet"
-                      className="text-xs px-2.5 py-1"
+                      className={`text-xs px-2.5 py-1 ${
+                        item.active
+                          ? "text-ink-soft hover:text-ink"
+                          : "text-emerald-500 hover:text-emerald-600 font-medium"
+                      }`}
                       onClick={() => toggle(item)}
                     >
-                      {item.active ? "Hide" : "Show"}
+                      {item.active ? "Disable" : "Enable"}
+                    </Button>
+                    <Button
+                      variant="quiet"
+                      className="text-xs px-2.5 py-1 text-rose-500 hover:text-rose-600 hover:bg-rose-500/10 font-medium"
+                      onClick={() => deleteMedia(item)}
+                    >
+                      Delete
                     </Button>
                   </div>
                 )}

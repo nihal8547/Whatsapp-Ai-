@@ -25,3 +25,19 @@ export async function one<T = any>(text: string, params: any[] = []): Promise<T 
   const rows = await q<T>(text, params);
   return rows[0] ?? null;
 }
+
+export async function tx<T = any>(fn: (client: any) => Promise<T>): Promise<T> {
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    const result = await fn(client);
+    await client.query("COMMIT");
+    return result;
+  } catch (e) {
+    await client.query("ROLLBACK");
+    throw e;
+  } finally {
+    client.release();
+  }
+}
+

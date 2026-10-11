@@ -1,0 +1,74 @@
+{
+  "code": "retail",
+  "name": "Retail / E-commerce",
+  "modules": ["orders", "catalog", "faq", "media"],
+  "labels": {
+    "catalog": "Products",
+    "item": "Product",
+    "order": "Order",
+    "orders": "Orders",
+    "customer": "Customer",
+    "customers": "Customers"
+  },
+  "persona_rules": "- Retrieve product specifications, available sizes, colours, and pricing strictly from tools.\n- Escalate returns, refund requests, delivery damage, and complaints directly to a human support agent.\n- Always confirm shipping address, recipient contact number, and grand total before placing an order.",
+  "defaults": {
+    "persona": "You are the personal shopping assistant for our boutique store. You assist shoppers with product inquiries, order placement, sizing guidance, and delivery tracking.",
+    "hours": [
+      { "weekday": 0, "open": "09:00", "close": "18:00", "closed": false },
+      { "weekday": 1, "open": "09:00", "close": "18:00", "closed": false },
+      { "weekday": 2, "open": "09:00", "close": "18:00", "closed": false },
+      { "weekday": 3, "open": "09:00", "close": "18:00", "closed": false },
+      { "weekday": 4, "open": "09:00", "close": "18:00", "closed": false },
+      { "weekday": 5, "open": "09:00", "close": "18:00", "closed": true },
+      { "weekday": 6, "open": "09:00", "close": "18:00", "closed": true }
+    ],
+    "services": [
+      { "name": "Personal Stylist Consultation", "duration_min": 30 },
+      { "name": "In-Store Order Pickup", "duration_min": 15 },
+      { "name": "Exchange & Fitting Appointment", "duration_min": 30 }
+    ],
+    "categories": ["New Arrivals", "Apparel & Fashion", "Footwear & Shoes", "Bags & Accessories", "Seasonal Sale"],
+    "faqs": [
+      {
+        "question": "What is your exchange and return policy?",
+        "answer": "Items in unworn condition with original tags can be exchanged or returned within [ADD RETURN WINDOW, e.g. 14 days] of delivery [ADD DETAILS]."
+      },
+      {
+        "question": "How long does shipping take and what does it cost?",
+        "answer": "Standard delivery takes [ADD SHIPPING TIME, e.g. 24-48 hours] across Qatar. Free shipping applies on orders over [ADD MINIMUM ORDER FOR FREE SHIPPING]."
+      },
+      {
+        "question": "What payment methods are available?",
+        "answer": "We accept credit/debit cards online, Apple Pay, cash on delivery, and card upon delivery [ADD DETAILS]."
+      },
+      {
+        "question": "How can I track my shipped package?",
+        "answer": "Once dispatched, you will receive a tracking link and courier contact on WhatsApp [ADD DETAILS]."
+      },
+      {
+        "question": "Where is your retail showroom located?",
+        "answer": "Our store is located at [ADD STORE ADDRESS AND MALL NAME]."
+      },
+      {
+        "question": "Can I pick up my online order at your retail store?",
+        "answer": "Yes, choose 'Click & Collect' and your bag will be ready for pickup within [ADD PICKUP PREP TIME, e.g. 2 hours]."
+      },
+      {
+        "question": "How do I choose the right size?",
+        "answer": "Check our size chart for bust, waist, and hip measurements [ADD SIZE GUIDE LINK/DETAILS]."
+      },
+      {
+        "question": "Are all products original and guaranteed?",
+        "answer": "Yes, 100% of our products are authentic and sourced directly from official brand partners [ADD DETAILS]."
+      },
+      {
+        "question": "Do you offer gift wrapping and personalized notes?",
+        "answer": "Yes, complimentary gift boxes with customized greeting notes are available upon request during checkout [ADD DETAILS]."
+      }
+    ],
+    "reminder_24h": "Hi {name} 👋 Your scheduled boutique styling appointment is tomorrow at {time}.",
+    "reminder_1h": "Hi {name}, our store stylist is ready for your visit in 1 hour at {time}!",
+    "followup": "Hi {name} 👋 Your package was delivered! Does the size and fit work well for you?",
+    "review": "Hi {name}, thank you for shopping with us! How do you like your new purchase? Share a review with us: {link}"
+  }
+}

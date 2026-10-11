@@ -22,7 +22,15 @@ type Message = {
 };
 
 type Detail = {
-  contact: { phone: string; name: string; bot_enabled: boolean; needs_human: boolean; handoff_reason: string };
+  contact: {
+    phone: string;
+    name: string;
+    bot_enabled: boolean;
+    needs_human: boolean;
+    handoff_reason: string;
+    lead_source?: string;
+    first_ad_title?: string;
+  };
   memory: { summary: string; facts: string[] } | null;
   appointments: { id: number; service: string; start_time: string; status: string }[];
   messages: Message[];
@@ -183,7 +191,12 @@ export default function Inbox({ initialPhone, tz }: { initialPhone: string | nul
           <>
             <header className="px-5 py-3 border-b border-line bg-panel flex items-center justify-between gap-3">
               <div className="min-w-0">
-                <p className="font-medium truncate">{detail.contact.name || detail.contact.phone}</p>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <p className="font-medium truncate">{detail.contact.name || detail.contact.phone}</p>
+                  {detail.contact.lead_source === "ad" && (
+                    <Tag tone="good">From ad: {detail.contact.first_ad_title || "Ad"}</Tag>
+                  )}
+                </div>
                 <p className="text-xs text-ink-soft tabular">+{detail.contact.phone}</p>
               </div>
               <div className="flex items-center gap-2 shrink-0">
@@ -277,6 +290,12 @@ export default function Inbox({ initialPhone, tz }: { initialPhone: string | nul
       <aside className="border-l border-line bg-panel p-5 overflow-y-auto lg:h-screen">
         {detail ? (
           <div className="space-y-6">
+            {detail.contact.lead_source === "ad" && (
+              <div className="bg-pine-wash border border-pine/20 rounded-md p-3">
+                <p className="text-xs font-semibold text-pine uppercase tracking-wider">From ad</p>
+                <p className="text-sm font-medium text-ink mt-0.5">{detail.contact.first_ad_title || "Click-to-WhatsApp ad"}</p>
+              </div>
+            )}
             {detail.contact.needs_human && detail.contact.handoff_reason && (
               <div className="bg-amber-wash rounded-md p-3">
                 <p className="text-sm font-medium text-amber">Asked for a person</p>

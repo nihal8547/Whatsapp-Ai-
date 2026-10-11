@@ -3,17 +3,37 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
+import NotificationsBell from "@/components/notifications-bell";
 
-const LINKS = [
-  { href: "/desk", label: "Today" },
-  { href: "/chats", label: "Chats" },
-  { href: "/appointments", label: "Appointments" },
-  { href: "/contacts", label: "Contacts" },
-  { href: "/services", label: "Services & hours" },
-  { href: "/media", label: "Media library" },
-  { href: "/assistant", label: "Assistant" },
-  { href: "/whatsapp", label: "WhatsApp number" },
-  { href: "/team", label: "Team" },
+
+export type NavItem = {
+  href: string;
+  labelKey?: string;
+  defaultLabel: string;
+  module?: string;
+  pageExists: boolean;
+};
+
+export const NAV_REGISTRY: NavItem[] = [
+  { href: "/desk", defaultLabel: "Today", pageExists: true },
+  { href: "/chats", defaultLabel: "Chats", labelKey: "chats", pageExists: true },
+  { href: "/appointments", defaultLabel: "Appointments", labelKey: "appointments", module: "appointments", pageExists: true },
+  { href: "/contacts", defaultLabel: "Contacts", labelKey: "customers", pageExists: true },
+  { href: "/faqs", defaultLabel: "FAQ", labelKey: "faqs", module: "faq", pageExists: true },
+  { href: "/analytics", defaultLabel: "Analytics", pageExists: true },
+  { href: "/services", defaultLabel: "Services & hours", labelKey: "services", module: "appointments", pageExists: true },
+  { href: "/media", defaultLabel: "Media library", module: "media", pageExists: true },
+  { href: "/assistant", defaultLabel: "Assistant", pageExists: true },
+  { href: "/whatsapp", defaultLabel: "WhatsApp number", pageExists: true },
+  { href: "/settings", defaultLabel: "Settings", pageExists: true },
+  { href: "/team", defaultLabel: "Team", pageExists: true },
+  // Active modules:
+  { href: "/catalog", defaultLabel: "Catalog", labelKey: "catalog", module: "catalog", pageExists: true },
+  { href: "/orders", defaultLabel: "Orders", labelKey: "orders", module: "orders", pageExists: true },
+  { href: "/leads", defaultLabel: "Leads", labelKey: "leads", module: "leads", pageExists: true },
+  // Modules not built yet:
+  { href: "/stays", defaultLabel: "Stays", module: "stays", pageExists: false },
+  { href: "/resources", defaultLabel: "Resources", labelKey: "resources", module: "resources", pageExists: false },
 ];
 
 type Props = {
@@ -27,9 +47,11 @@ type Props = {
     replyLimit: number | null;
     trialEndsAt: string | null;
   };
+  modules?: string[];
+  labels?: Record<string, string>;
 };
 
-export default function Sidebar({ session, tenant }: Props) {
+export default function Sidebar({ session, tenant, modules = [], labels = {} }: Props) {
   const path = usePathname();
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -45,13 +67,22 @@ export default function Sidebar({ session, tenant }: Props) {
     router.refresh();
   }
 
+  const visibleLinks = NAV_REGISTRY.filter((item) => {
+    if (!item.pageExists) return false;
+    if (!item.module) return true;
+    return modules.includes(item.module);
+  });
+
   return (
     <>
       <div className="lg:hidden flex items-center justify-between px-4 h-14 border-b border-line bg-panel sticky top-0 z-30">
         <span className="font-semibold truncate">{tenant.name}</span>
-        <button onClick={() => setOpen(!open)} className="text-sm text-ink-soft px-2 py-1">
-          {open ? "Close" : "Menu"}
-        </button>
+        <div className="flex items-center gap-2">
+          <NotificationsBell />
+          <button onClick={() => setOpen(!open)} className="text-sm text-ink-soft px-2 py-1">
+            {open ? "Close" : "Menu"}
+          </button>
+        </div>
       </div>
 
       <nav
@@ -65,8 +96,16 @@ export default function Sidebar({ session, tenant }: Props) {
         </div>
 
         <div className="px-3 pb-3 space-y-0.5">
-          {LINKS.map((l) => {
+          {visibleLinks.map((l) => {
             const active = path === l.href || path.startsWith(l.href + "/");
+            let labelText = l.defaultLabel;
+            if (l.href === "/services") {
+              const svcLabel = labels["services"] || labels["service"] || "Services";
+              labelText = `${svcLabel} & hours`;
+            } else if (l.labelKey && labels[l.labelKey]) {
+              labelText = labels[l.labelKey];
+            }
+
             return (
               <Link
                 key={l.href}
@@ -76,7 +115,7 @@ export default function Sidebar({ session, tenant }: Props) {
                   active ? "bg-pine-wash text-pine-deep font-medium" : "text-ink-soft hover:bg-canvas"
                 }`}
               >
-                {l.label}
+                {labelText}
               </Link>
             );
           })}

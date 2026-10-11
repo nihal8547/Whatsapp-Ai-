@@ -1,0 +1,76 @@
+{
+  "code": "travels",
+  "name": "Travels & Tours",
+  "modules": ["leads", "quotes", "catalog", "appointments", "faq", "media"],
+  "labels": {
+    "catalog": "Packages",
+    "item": "Package",
+    "lead": "Enquiry",
+    "leads": "Enquiries",
+    "customer": "Traveller",
+    "customers": "Travellers",
+    "appointment": "Consultation",
+    "appointments": "Consultations"
+  },
+  "persona_rules": "- Collect destination or package preference, travel dates, number of travellers, and estimated budget.\n- Never quote a final price directly; only provide prices from the catalog or explain that travel specialists will send an itemized quote.\n- Passport, visa documents, and national ID details must only be submitted through an authorized staff member.",
+  "defaults": {
+    "persona": "You are a friendly travel advisor helping clients explore vacation packages, flight and hotel inquiries, and customized trip itineraries.",
+    "hours": [
+      { "weekday": 0, "open": "09:00", "close": "18:00", "closed": false },
+      { "weekday": 1, "open": "09:00", "close": "18:00", "closed": false },
+      { "weekday": 2, "open": "09:00", "close": "18:00", "closed": false },
+      { "weekday": 3, "open": "09:00", "close": "18:00", "closed": false },
+      { "weekday": 4, "open": "09:00", "close": "18:00", "closed": false },
+      { "weekday": 5, "open": "09:00", "close": "18:00", "closed": true },
+      { "weekday": 6, "open": "09:00", "close": "18:00", "closed": true }
+    ],
+    "services": [
+      { "name": "Travel Planning Consultation", "duration_min": 30 },
+      { "name": "Visa Guidance Session", "duration_min": 30 },
+      { "name": "Customized Itinerary Review", "duration_min": 45 }
+    ],
+    "categories": ["International Holiday Packages", "Domestic Getaways", "Honeymoon Specials", "Adventure Tours", "Visa & Passport Services"],
+    "faqs": [
+      {
+        "question": "What documents are required to book an international package?",
+        "answer": "You need a passport valid for at least 6 months from the date of travel, plus visa documents according to the destination country [ADD DETAILS]."
+      },
+      {
+        "question": "Do you assist with tourist visa applications?",
+        "answer": "Yes, our visa desk provides full assistance with application forms, appointment booking, and document checklists for [ADD COUNTRIES]."
+      },
+      {
+        "question": "What is your booking cancellation and refund policy?",
+        "answer": "Cancellations depend on airline and hotel fare rules. Standard agency terms require notice [ADD REFUND POLICY DETAILS]."
+      },
+      {
+        "question": "Are flight tickets included in vacation packages?",
+        "answer": "Our packages can be booked with or without flights based on your preference [ADD DETAILS]."
+      },
+      {
+        "question": "Can I customize a package itinerary?",
+        "answer": "Absolutely! Our travel specialists can customize hotels, tours, transfers, and activities according to your requirements [ADD DETAILS]."
+      },
+      {
+        "question": "Do you offer travel insurance?",
+        "answer": "Yes, comprehensive travel and medical insurance coverage is available through [ADD INSURANCE PARTNER DETAILS]."
+      },
+      {
+        "question": "What payment methods do you accept?",
+        "answer": "We accept bank transfers, credit/debit cards, and payment links [ADD PAYMENT OPTIONS]."
+      },
+      {
+        "question": "Where is your office located?",
+        "answer": "Our travel agency office is located at [ADD OFFICE ADDRESS]."
+      },
+      {
+        "question": "How far in advance should I book my holiday?",
+        "answer": "We recommend booking at least [ADD LEAD TIME, e.g. 4-6 weeks] in advance for international travel to secure the best rates."
+      }
+    ],
+    "reminder_24h": "Hi {name} 👋 Just a reminder: your travel consultation is scheduled for tomorrow at {time}.",
+    "reminder_1h": "Hi {name}, our travel specialist will be ready for your consultation in 1 hour at {time}!",
+    "followup": "Hi {name} 👋 Just following up on your travel enquiry. Have you decided on dates or would you like to review package options?",
+    "review": "Hi {name}, we hope you had a wonderful journey! Would you mind sharing a quick review of your experience with us? {link}"
+  }
+}

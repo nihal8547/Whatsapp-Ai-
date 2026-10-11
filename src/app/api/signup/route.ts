@@ -1,6 +1,7 @@
 import { hashPassword, signIn, errorResponse } from "@/lib/auth";
 import { one } from "@/lib/db";
 import { n8n } from "@/lib/n8n";
+import { applyPack } from "@/lib/packs";
 
 export async function POST(req: Request) {
   try {
@@ -63,9 +64,16 @@ export async function POST(req: Request) {
         initialMetadata = { customFields: [] };
     }
 
+    await applyPack(created.tenant_id, businessType, { overwrite: false });
+
+    const metadataWithOnboarding = {
+      ...initialMetadata,
+      onboarding: { step: 1, completed: false, finished_at: null },
+    };
+
     await one(
       `UPDATE wa_tenants SET business_type = $1, business_metadata = $2 WHERE id = $3 RETURNING id`,
-      [businessType, initialMetadata, created.tenant_id]
+      [businessType, metadataWithOnboarding, created.tenant_id]
     );
 
     const hash = await hashPassword(password);

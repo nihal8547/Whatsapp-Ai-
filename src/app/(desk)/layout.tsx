@@ -1,7 +1,9 @@
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import { one } from "@/lib/db";
+import { getTenantConfig } from "@/lib/packs";
 import Sidebar from "@/components/sidebar";
+import NotificationsBell from "@/components/notifications-bell";
 
 export default async function DeskLayout({ children }: { children: React.ReactNode }) {
   const session = await getSession();
@@ -21,6 +23,8 @@ export default async function DeskLayout({ children }: { children: React.ReactNo
     [session.tenantId]
   );
 
+  const config = await getTenantConfig(session.tenantId);
+
   return (
     <div className="min-h-screen lg:grid lg:grid-cols-[248px_1fr]">
       <Sidebar
@@ -34,8 +38,16 @@ export default async function DeskLayout({ children }: { children: React.ReactNo
           replyLimit: tenant?.monthly_reply_limit ? Number(tenant.monthly_reply_limit) : null,
           trialEndsAt: tenant?.trial_ends_at ? String(tenant.trial_ends_at) : null,
         }}
+        modules={config.modules}
+        labels={config.labels}
       />
-      <main className="min-w-0">{children}</main>
+      <main className="min-w-0 flex flex-col">
+        <header className="hidden lg:flex items-center justify-end px-8 h-14 border-b border-line bg-panel/40 backdrop-blur sticky top-0 z-20">
+          <NotificationsBell />
+        </header>
+        <div className="flex-1 min-w-0">{children}</div>
+      </main>
     </div>
   );
 }
+

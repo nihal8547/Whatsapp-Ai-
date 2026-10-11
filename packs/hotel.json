@@ -1,0 +1,74 @@
+{
+  "code": "hotel",
+  "name": "Hotel / Hospitality",
+  "modules": ["stays", "catalog", "faq", "media"],
+  "labels": {
+    "catalog": "Room types",
+    "item": "Room type",
+    "appointment": "Booking",
+    "appointments": "Bookings",
+    "customer": "Guest",
+    "customers": "Guests"
+  },
+  "persona_rules": "- Collect arrival and departure dates, number of guests, and preferred room type.\n- Provide room prices and availability strictly from tools; never guess or estimate.\n- Security deposits, identity documents, and payment authorizations are handled directly by front desk staff.\n- Share check-in instructions and hotel amenities immediately after reservation confirmation.",
+  "defaults": {
+    "persona": "You are the virtual concierge for our hotel, assisting guests with room inquiries, reservations, check-in information, and hotel amenities.",
+    "hours": [
+      { "weekday": 0, "open": "09:00", "close": "18:00", "closed": false },
+      { "weekday": 1, "open": "09:00", "close": "18:00", "closed": false },
+      { "weekday": 2, "open": "09:00", "close": "18:00", "closed": false },
+      { "weekday": 3, "open": "09:00", "close": "18:00", "closed": false },
+      { "weekday": 4, "open": "09:00", "close": "18:00", "closed": false },
+      { "weekday": 5, "open": "09:00", "close": "18:00", "closed": true },
+      { "weekday": 6, "open": "09:00", "close": "18:00", "closed": true }
+    ],
+    "services": [
+      { "name": "Room Reservation Assistance", "duration_min": 15 },
+      { "name": "Airport Transfer Arrangement", "duration_min": 30 },
+      { "name": "Late Checkout Request", "duration_min": 15 }
+    ],
+    "categories": ["Standard Rooms", "Deluxe Rooms", "Executive Suites", "Family Suites", "Hotel Amenities"],
+    "faqs": [
+      {
+        "question": "What are your check-in and check-out times?",
+        "answer": "Standard check-in is at [ADD CHECK-IN TIME, e.g. 15:00] and check-out is at [ADD CHECK-OUT TIME, e.g. 12:00]."
+      },
+      {
+        "question": "Can I request early check-in or late check-out?",
+        "answer": "Early check-in and late check-out are subject to availability upon arrival [ADD DETAILS/CHARGES]."
+      },
+      {
+        "question": "Is breakfast included in the stay?",
+        "answer": "Breakfast availability depends on the booked room rate [ADD BREAKFAST DETAILS AND TIMINGS]."
+      },
+      {
+        "question": "Do you provide complimentary Wi-Fi and parking?",
+        "answer": "Yes, high-speed Wi-Fi and complimentary guest parking are available for all residents [ADD DETAILS]."
+      },
+      {
+        "question": "What is the hotel's cancellation policy?",
+        "answer": "Free cancellation is available up to [ADD CANCELLATION DEADLINE, e.g. 24 hours] prior to check-in."
+      },
+      {
+        "question": "Do you provide airport shuttle services?",
+        "answer": "Yes, airport transfer can be scheduled in advance with our concierge desk [ADD TRANSFER DETAILS]."
+      },
+      {
+        "question": "What amenities are available on-site?",
+        "answer": "We offer a swimming pool, fitness gym, dining restaurant, and business center [ADD AMENITIES]."
+      },
+      {
+        "question": "What ID is required upon check-in?",
+        "answer": "All adult guests must present a valid passport or government-issued national ID card upon check-in [ADD DETAILS]."
+      },
+      {
+        "question": "Are pets allowed in the hotel?",
+        "answer": "Our pet policy is [ADD PET POLICY DETAILS]."
+      }
+    ],
+    "reminder_24h": "Hi {name} 👋 We look forward to welcoming you tomorrow! Your reservation is confirmed for arrival on {time}.",
+    "reminder_1h": "Hi {name}, our front desk team is ready for your arrival. Let us know if you need any directions or luggage assistance!",
+    "followup": "Hi {name} 👋 Checking in to see if you have any questions before your upcoming stay with us?",
+    "review": "Hi {name}, thank you for staying with us! We hope you had a relaxing time. Would you mind leaving us a quick review? {link}"
+  }
+}

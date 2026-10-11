@@ -33,7 +33,7 @@ export default async function TenantDetailPage({
   );
   if (!tenant) notFound();
 
-  const [usage, counts, team, plans] = await Promise.all([
+  const [usage, counts, team, plans, last30Days] = await Promise.all([
     q(
       `SELECT to_char(day,'YYYY-MM-DD') AS day, messages_in AS msg_received, ai_replies
          FROM wa_usage_daily WHERE tenant_id = $1 ORDER BY day DESC LIMIT 30`,
@@ -53,6 +53,21 @@ export default async function TenantDetailPage({
       [id]
     ),
     q(`SELECT id, code, name FROM wa_plans WHERE active ORDER BY id`),
+    one<{
+      messages_in: number;
+      new_contacts: number;
+      bookings_created: number;
+      ad_leads: number;
+    }>(
+      `SELECT COALESCE(SUM(messages_in), 0)::int AS messages_in,
+              COALESCE(SUM(new_contacts), 0)::int AS new_contacts,
+              COALESCE(SUM(bookings_created), 0)::int AS bookings_created,
+              COALESCE(SUM(ad_leads), 0)::int AS ad_leads
+         FROM wa_v_daily_overview
+        WHERE tenant_id = $1
+          AND day >= (CURRENT_DATE - 29)`,
+      [id]
+    ),
   ]);
 
   return (
@@ -62,6 +77,7 @@ export default async function TenantDetailPage({
       counts={counts ?? {}}
       team={team}
       plans={plans}
+      last30Days={last30Days ?? { messages_in: 0, new_contacts: 0, bookings_created: 0, ad_leads: 0 }}
     />
   );
 }
