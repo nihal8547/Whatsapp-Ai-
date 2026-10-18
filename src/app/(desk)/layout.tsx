@@ -26,7 +26,7 @@ export default async function DeskLayout({ children }: { children: React.ReactNo
   const config = await getTenantConfig(session.tenantId);
 
   return (
-    <div className="min-h-screen lg:grid lg:grid-cols-[248px_1fr]">
+    <div className="min-h-screen lg:h-screen lg:overflow-hidden lg:grid lg:grid-cols-[248px_1fr]">
       <Sidebar
         session={{ name: session.name, email: session.email, superAdmin: session.superAdmin, role: session.role }}
         tenant={{
@@ -41,11 +41,11 @@ export default async function DeskLayout({ children }: { children: React.ReactNo
         modules={config.modules}
         labels={config.labels}
       />
-      <main className="min-w-0 flex flex-col">
-        <header className="hidden lg:flex items-center justify-end px-8 h-14 border-b border-line bg-panel/40 backdrop-blur sticky top-0 z-20">
+      <main className="min-w-0 flex flex-col lg:h-screen lg:overflow-hidden">
+        <header className="hidden lg:flex shrink-0 items-center justify-end px-8 h-14 border-b border-line bg-panel/40 backdrop-blur z-20">
           <NotificationsBell />
         </header>
-        <div className="flex-1 min-w-0">{children}</div>
+        <div className="flex-1 min-w-0 min-h-0 overflow-y-auto flex flex-col">{children}</div>
       </main>
     </div>
   );

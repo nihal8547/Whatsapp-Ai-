@@ -23,6 +23,7 @@ export default async function TenantDetailPage({
             t.business_type, t.admin_notes,
             COALESCE(p.name,'No plan') AS plan, p.id AS plan_id, p.price_qar,
             bs.timezone, bs.admin_phone,
+            COALESCE((bs.broadcast_settings->>'enabled')::boolean, true) AS broadcasts_enabled,
             i.instance_name, COALESCE(i.status,'none') AS wa_status
        FROM wa_tenants t
        LEFT JOIN wa_plans p ON p.id = t.plan_id

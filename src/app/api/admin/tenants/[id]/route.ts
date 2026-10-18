@@ -15,6 +15,7 @@ export async function GET(
               t.business_type, t.admin_notes,
               COALESCE(p.name,'No plan') AS plan, p.id AS plan_id, p.price_qar,
               bs.timezone, bs.admin_phone,
+              COALESCE((bs.broadcast_settings->>'enabled')::boolean, true) AS broadcasts_enabled,
               i.instance_name, COALESCE(i.status,'none') AS wa_status
          FROM wa_tenants t
          LEFT JOIN wa_plans p ON p.id = t.plan_id
@@ -81,7 +82,22 @@ export async function PATCH(
       ]
     );
     if (!row) return Response.json({ ok: false, error: "not_found" }, { status: 404 });
-    return Response.json({ ok: true, ...row });
+
+    if (b.broadcasts_enabled !== undefined) {
+      await one(
+        `UPDATE wa_bot_settings
+            SET broadcast_settings = jsonb_set(
+                  COALESCE(broadcast_settings, '{"enabled": true, "daily_cap": 100, "hourly_cap": 25, "window_end": "21:00", "window_start": "09:00"}'::jsonb),
+                  '{enabled}',
+                  $2::jsonb
+                ),
+                updated_at = now()
+          WHERE tenant_id = $1::int`,
+        [id, JSON.stringify(Boolean(b.broadcasts_enabled))]
+      );
+    }
+
+    return Response.json({ ok: true, ...row, broadcasts_enabled: b.broadcasts_enabled });
   } catch (e) {
     return errorResponse(e);
   }

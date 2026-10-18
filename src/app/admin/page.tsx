@@ -29,7 +29,8 @@ export default async function AdminPage() {
               COALESCE(alert_instance,'') AS alert_instance,
               COALESCE(webhook_secret_enforced, false) AS webhook_secret_enforced,
               COALESCE(evolution_url,'') AS evolution_url,
-              COALESCE(webhook_url,'') AS webhook_url
+              COALESCE(webhook_url,'') AS webhook_url,
+              COALESCE(broadcast_daily_max, 200) AS broadcast_daily_max
          FROM wa_platform_settings WHERE id = 1`
     ),
     one(`

@@ -18,6 +18,7 @@ type Plan = {
 type PlatformSettings = {
   dashboard_url: string; alert_phone: string; alert_instance: string;
   webhook_secret_enforced: boolean; evolution_url: string; webhook_url: string;
+  broadcast_daily_max?: number;
 };
 type Overview = Record<string, string | number>;
 
@@ -240,6 +241,11 @@ export default function AdminShell({
             <Field label="Read-only: Webhook URL">
               <input className={`${inputClass} opacity-60 cursor-not-allowed`} readOnly
                 value={ps.webhook_url} />
+            </Field>
+            <Field label="Broadcast Platform Daily Max" hint="Global maximum broadcast messages any tenant can send per day.">
+              <input className={inputClass} type="number" min={1} placeholder="200"
+                value={ps.broadcast_daily_max ?? 200}
+                onChange={e => setPs({ ...ps, broadcast_daily_max: Number(e.target.value) })} />
             </Field>
             <div className="sm:col-span-2 flex items-center gap-3">
               <label className="flex items-center gap-2 text-sm cursor-pointer">

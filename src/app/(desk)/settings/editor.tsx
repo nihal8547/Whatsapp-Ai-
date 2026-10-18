@@ -32,6 +32,8 @@ export default function SettingsEditor({
   activeModules,
   labels,
   availablePacks,
+  broadcastSettings,
+  platformDailyMax = 200,
 }: {
   tenantId: number;
   isOwner: boolean;
@@ -39,6 +41,14 @@ export default function SettingsEditor({
   activeModules: string[];
   labels: Record<string, string>;
   availablePacks: BusinessPackItem[];
+  broadcastSettings?: {
+    enabled: boolean;
+    daily_cap: number;
+    hourly_cap: number;
+    window_start: string;
+    window_end: string;
+  };
+  platformDailyMax?: number;
 }) {
   const router = useRouter();
   const [selectedPack, setSelectedPack] = useState(currentPack.code);
@@ -47,6 +57,46 @@ export default function SettingsEditor({
   const [busyPack, setBusyPack] = useState(false);
   const [busyModules, setBusyModules] = useState(false);
   const { message, show } = useToast();
+
+  const [bcSettings, setBcSettings] = useState(
+    broadcastSettings ?? {
+      enabled: true,
+      daily_cap: 100,
+      hourly_cap: 25,
+      window_start: "09:00",
+      window_end: "21:00",
+    }
+  );
+  const [savingBc, setSavingBc] = useState(false);
+
+  async function saveBroadcastSettings(e: React.FormEvent) {
+    e.preventDefault();
+    if (!isOwner) return;
+    if (bcSettings.daily_cap > platformDailyMax) {
+      return show(`Daily cap cannot exceed platform limit of ${platformDailyMax} messages/day.`);
+    }
+    if (bcSettings.hourly_cap > 40) {
+      return show("Hourly cap cannot exceed 40 messages/hour.");
+    }
+    setSavingBc(true);
+    try {
+      const res = await fetch("/api/settings/broadcast", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(bcSettings),
+      });
+      const data = await res.json();
+      if (!data.ok) {
+        show(data.message || data.error || "Failed to save broadcast settings.");
+      } else {
+        show("Broadcast settings saved.");
+      }
+    } catch {
+      show("Network error.");
+    } finally {
+      setSavingBc(false);
+    }
+  }
 
   function toggleModule(code: string) {
     if (!isOwner) return;
@@ -179,6 +229,106 @@ export default function SettingsEditor({
         ) : (
           <p className="text-xs text-ink-soft italic">
             Only the workspace owner can switch business types.
+          </p>
+        )}
+      </Panel>
+
+      {/* Broadcast Campaign Settings (Owner) */}
+      <Panel className="space-y-5">
+        <div>
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <h3 className="font-semibold text-base text-ink">Broadcast Campaign Settings</h3>
+            <Tag tone={bcSettings.enabled ? "good" : "neutral"}>
+              {bcSettings.enabled ? "Enabled" : "Disabled"}
+            </Tag>
+          </div>
+          <p className="text-xs text-ink-soft mt-1">
+            Configure sending limits and quiet hours for bulk outbound campaigns sent via n8n.
+          </p>
+        </div>
+
+        {isOwner ? (
+          <form onSubmit={saveBroadcastSettings} className="space-y-4">
+            <div className="flex items-center gap-2.5">
+              <input
+                type="checkbox"
+                id="bc-enabled"
+                checked={bcSettings.enabled}
+                onChange={(e) => setBcSettings({ ...bcSettings, enabled: e.target.checked })}
+                className="rounded text-pine focus:ring-pine cursor-pointer"
+              />
+              <label htmlFor="bc-enabled" className="text-sm font-medium text-ink cursor-pointer select-none">
+                Enable broadcast campaigns for this workspace
+              </label>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-1">
+              <Field
+                label="Daily Cap"
+                hint={`Max allowed: ${platformDailyMax} msgs/day`}
+              >
+                <input
+                  type="number"
+                  min={1}
+                  max={platformDailyMax}
+                  value={bcSettings.daily_cap}
+                  onChange={(e) => setBcSettings({ ...bcSettings, daily_cap: Number(e.target.value) })}
+                  className={inputClass}
+                  required
+                />
+              </Field>
+
+              <Field
+                label="Hourly Cap"
+                hint="Max 40 messages/hour"
+              >
+                <input
+                  type="number"
+                  min={1}
+                  max={40}
+                  value={bcSettings.hourly_cap}
+                  onChange={(e) => setBcSettings({ ...bcSettings, hourly_cap: Number(e.target.value) })}
+                  className={inputClass}
+                  required
+                />
+              </Field>
+
+              <Field
+                label="Sending Window Start"
+                hint="Do not send before this time"
+              >
+                <input
+                  type="time"
+                  value={bcSettings.window_start}
+                  onChange={(e) => setBcSettings({ ...bcSettings, window_start: e.target.value })}
+                  className={inputClass}
+                  required
+                />
+              </Field>
+
+              <Field
+                label="Sending Window End"
+                hint="Do not send after this time"
+              >
+                <input
+                  type="time"
+                  value={bcSettings.window_end}
+                  onChange={(e) => setBcSettings({ ...bcSettings, window_end: e.target.value })}
+                  className={inputClass}
+                  required
+                />
+              </Field>
+            </div>
+
+            <div className="pt-2 flex justify-end">
+              <Button type="submit" disabled={savingBc}>
+                {savingBc ? "Saving..." : "Save Broadcast Settings"}
+              </Button>
+            </div>
+          </form>
+        ) : (
+          <p className="text-xs text-ink-soft italic">
+            Only the workspace owner can update broadcast limits and quiet hours.
           </p>
         )}
       </Panel>

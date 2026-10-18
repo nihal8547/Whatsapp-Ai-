@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Button, Empty, Tag, Toast, useToast } from "@/components/ui";
 import { clock, dayStamp, timeAgo } from "@/lib/format";
+import { WhatWeKnow } from "@/components/what-we-know";
 
 type Thread = {
   phone: string;
@@ -121,10 +122,10 @@ export default function Inbox({ initialPhone, tz }: { initialPhone: string | nul
   }
 
   return (
-    <div className="lg:grid lg:grid-cols-[300px_1fr_280px] lg:h-screen">
+    <div className="h-full w-full min-h-0 overflow-hidden lg:grid lg:grid-cols-[300px_1fr_320px]">
       {/* Threads */}
-      <aside className="border-r border-line bg-panel flex flex-col lg:h-screen">
-        <div className="p-4 border-b border-line space-y-3">
+      <aside className="border-r border-line bg-panel flex flex-col h-full min-h-0 overflow-hidden">
+        <div className="p-4 border-b border-line space-y-3 shrink-0">
           <input
             placeholder="Search name or number"
             value={search}
@@ -146,7 +147,7 @@ export default function Inbox({ initialPhone, tz }: { initialPhone: string | nul
           </div>
         </div>
 
-        <div className="overflow-y-auto flex-1 max-h-[40vh] lg:max-h-none">
+        <div className="overflow-y-auto flex-1 min-h-0">
           {!loaded ? (
             <p className="text-sm text-ink-soft p-4">Loading chats…</p>
           ) : threads.length === 0 ? (
@@ -184,12 +185,14 @@ export default function Inbox({ initialPhone, tz }: { initialPhone: string | nul
       </aside>
 
       {/* Conversation */}
-      <section className="flex flex-col lg:h-screen min-w-0">
+      <section className="flex flex-col h-full min-h-0 min-w-0 overflow-hidden bg-canvas/30">
         {!detail ? (
-          <Empty title="Pick a chat">Choose a conversation on the left to read it.</Empty>
+          <div className="flex-1 flex items-center justify-center p-8">
+            <Empty title="Pick a chat">Choose a conversation on the left to read it.</Empty>
+          </div>
         ) : (
           <>
-            <header className="px-5 py-3 border-b border-line bg-panel flex items-center justify-between gap-3">
+            <header className="px-5 py-3 border-b border-line bg-panel flex items-center justify-between gap-3 shrink-0">
               <div className="min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
                   <p className="font-medium truncate">{detail.contact.name || detail.contact.phone}</p>
@@ -218,7 +221,7 @@ export default function Inbox({ initialPhone, tz }: { initialPhone: string | nul
               </div>
             </header>
 
-            <div className="flex-1 overflow-y-auto p-5 space-y-2 max-h-[50vh] lg:max-h-none">
+            <div className="flex-1 overflow-y-auto min-h-0 p-5 space-y-2">
               {detail.messages.map((m, i) => {
                 const prev = detail.messages[i - 1];
                 const newDay =
@@ -257,7 +260,7 @@ export default function Inbox({ initialPhone, tz }: { initialPhone: string | nul
               <div ref={bottomRef} />
             </div>
 
-            <div className="border-t border-line bg-panel p-4">
+            <div className="border-t border-line bg-panel p-4 shrink-0">
               {detail.contact.bot_enabled && (
                 <p className="text-xs text-amber mb-2">
                   The assistant is replying to this chat. Your message goes out as well.
@@ -287,7 +290,7 @@ export default function Inbox({ initialPhone, tz }: { initialPhone: string | nul
       </section>
 
       {/* Context */}
-      <aside className="border-l border-line bg-panel p-5 overflow-y-auto lg:h-screen">
+      <aside className="border-l border-line bg-panel p-5 overflow-y-auto h-full min-h-0">
         {detail ? (
           <div className="space-y-6">
             {detail.contact.lead_source === "ad" && (
@@ -303,23 +306,7 @@ export default function Inbox({ initialPhone, tz }: { initialPhone: string | nul
               </div>
             )}
 
-            <div>
-              <h3 className="font-semibold text-sm mb-2">What we know</h3>
-              {detail.memory?.summary ? (
-                <p className="text-sm text-ink-soft leading-relaxed">{detail.memory.summary}</p>
-              ) : (
-                <p className="text-sm text-ink-faint">Nothing yet — this is a new customer.</p>
-              )}
-              {detail.memory?.facts?.length ? (
-                <ul className="mt-3 space-y-1">
-                  {detail.memory.facts.map((f, i) => (
-                    <li key={i} className="text-sm text-ink-soft">
-                      {f}
-                    </li>
-                  ))}
-                </ul>
-              ) : null}
-            </div>
+            <WhatWeKnow memory={detail.memory} />
 
             <div>
               <h3 className="font-semibold text-sm mb-2">Appointments</h3>

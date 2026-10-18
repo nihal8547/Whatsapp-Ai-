@@ -11,6 +11,7 @@ type Tenant = {
   business_type: string | null; admin_notes: string;
   plan: string; plan_id: number | null;
   timezone: string | null; admin_phone: string | null;
+  broadcasts_enabled?: boolean;
   instance_name: string | null; wa_status: string;
 };
 type UsageRow = { day: string; msg_received: number; ai_replies: number };
@@ -308,6 +309,22 @@ export default function TenantDetail({
                 onBlur={e => { if (e.target.value) patch({ trial_ends_at: e.target.value }); }}
               />
             </Field>
+
+            <div className="pt-2 sm:col-span-3 border-t border-line">
+              <label className="flex items-center gap-2.5 text-sm cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  className="rounded text-pine focus:ring-pine"
+                  checked={tenant.broadcasts_enabled !== false}
+                  disabled={savingAction}
+                  onChange={e => patch({ broadcasts_enabled: e.target.checked })}
+                />
+                <span className="font-medium text-ink">Broadcasts enabled for this workspace</span>
+              </label>
+              <p className="text-xs text-ink-soft ml-6 mt-0.5">
+                Disable to restrict this tenant from launching any broadcast campaigns.
+              </p>
+            </div>
           </div>
         </Panel>
 

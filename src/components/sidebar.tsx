@@ -19,6 +19,7 @@ export const NAV_REGISTRY: NavItem[] = [
   { href: "/chats", defaultLabel: "Chats", labelKey: "chats", pageExists: true },
   { href: "/appointments", defaultLabel: "Appointments", labelKey: "appointments", module: "appointments", pageExists: true },
   { href: "/contacts", defaultLabel: "Contacts", labelKey: "customers", pageExists: true },
+  { href: "/broadcasts", defaultLabel: "Broadcasts", pageExists: true },
   { href: "/faqs", defaultLabel: "FAQ", labelKey: "faqs", module: "faq", pageExists: true },
   { href: "/analytics", defaultLabel: "Analytics", pageExists: true },
   { href: "/services", defaultLabel: "Services & hours", labelKey: "services", module: "appointments", pageExists: true },
@@ -69,6 +70,7 @@ export default function Sidebar({ session, tenant, modules = [], labels = {} }: 
 
   const visibleLinks = NAV_REGISTRY.filter((item) => {
     if (!item.pageExists) return false;
+    if (item.href === "/broadcasts" && session.role === "staff" && !session.superAdmin) return false;
     if (!item.module) return true;
     return modules.includes(item.module);
   });
