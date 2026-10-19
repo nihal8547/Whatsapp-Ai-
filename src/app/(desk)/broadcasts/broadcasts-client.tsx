@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Panel, PageHead, Button, Field, inputClass, Tag, Toast, useToast } from "@/components/ui";
 import { fullStamp } from "@/lib/format";
+import { renderMessagePreview } from "@/lib/broadcast-preview";
 
 type BroadcastItem = {
   id: number;
@@ -88,6 +89,7 @@ export default function BroadcastsClient({
     unknown: number;
     total: number;
     estimateText: string;
+    customFieldKeys?: string[];
   } | null>(null);
   const [loadingEstimate, setLoadingEstimate] = useState(false);
 
@@ -111,6 +113,7 @@ export default function BroadcastsClient({
             unknown: data.unknown,
             total: data.total,
             estimateText: data.estimateText,
+            customFieldKeys: data.customFieldKeys || [],
           });
         }
       })
@@ -210,9 +213,27 @@ export default function BroadcastsClient({
     }
   }
 
-  // Preview message text replacement
+  // Available variables for chosen audience
+  const availableCustomKeys = estimateData?.customFieldKeys || [];
+  const allowedVariableNames = new Set(["name", "business", ...availableCustomKeys.map((k) => k.toLowerCase())]);
+  const varMatches = Array.from(messageText.matchAll(/\{([^{}|]+)(?:\|([^{}]*))?\}/g));
+  const unknownVariables = varMatches
+    .map((m: any) => m[1].trim())
+    .filter((k: string) => !allowedVariableNames.has(k.toLowerCase()));
+
+  // Sample attributes for live preview
+  const sampleAttrs: Record<string, string> = {
+    company: "Acme Corp",
+    city: "Doha",
+    vip_tier: "Gold",
+  };
+  availableCustomKeys.forEach((k) => {
+    if (!sampleAttrs[k]) sampleAttrs[k] = `[${k}]`;
+  });
+
+  // Preview message text replacement: identical to what will be rendered
   const samplePreview = messageText
-    ? messageText.replace(/\{name\}/gi, "Sarah").replace(/\{business\}/gi, businessName)
+    ? renderMessagePreview(messageText, "Sarah", businessName, sampleAttrs)
     : "Hi Sarah, we have a special announcement for you!";
 
   return (
@@ -502,8 +523,8 @@ export default function BroadcastsClient({
                   className={`${inputClass} font-sans`}
                 />
 
-                <div className="flex items-center justify-between mt-2 text-xs">
-                  <div className="flex items-center gap-1.5">
+                <div className="flex flex-wrap items-center justify-between mt-2 gap-2 text-xs">
+                  <div className="flex flex-wrap items-center gap-1.5">
                     <span className="text-ink-soft">Insert:</span>
                     <button
                       type="button"
@@ -519,21 +540,42 @@ export default function BroadcastsClient({
                     >
                       {"{business}"}
                     </button>
+                    {availableCustomKeys.map((k) => (
+                      <button
+                        key={k}
+                        type="button"
+                        onClick={() => insertVariable(`{${k}}`)}
+                        className="px-2 py-0.5 rounded bg-pine-wash border border-pine/30 hover:border-pine text-pine-deep font-mono text-[11px]"
+                        title={`Custom field: ${k}`}
+                      >
+                        {`{${k}}`}
+                      </button>
+                    ))}
                   </div>
                   <span className="text-ink-faint">
-                    &ldquo;Reply STOP to unsubscribe.&rdquo; is added automatically.
+                    Use <code className="font-mono text-[11px]">{"{field|fallback}"}</code> for defaults.
                   </span>
                 </div>
+
+                {unknownVariables.length > 0 && (
+                  <div className="mt-2.5 p-2.5 bg-brick/10 border border-brick/30 rounded-md text-xs text-brick flex items-center gap-2">
+                    <span className="font-bold">⚠️ Blocked:</span>
+                    <span>
+                      Unknown variable{unknownVariables.length > 1 ? "s" : ""}:{" "}
+                      <strong>{unknownVariables.map((v: string) => `{${v}}`).join(", ")}</strong>. Unknown variables block broadcast start. Allowed: {"{name}"}, {"{business}"}{availableCustomKeys.length > 0 ? `, ${availableCustomKeys.map((k: string) => "{" + k + "}").join(", ")}` : ""}.
+                    </span>
+                  </div>
+                )}
               </div>
 
               {/* Message Live Preview */}
               <div className="p-3 bg-canvas/60 border border-line rounded-lg text-xs">
-                <p className="font-semibold text-ink-soft mb-1">Preview with Sample Data:</p>
-                <div className="bg-panel p-3 rounded border border-line text-ink leading-relaxed whitespace-pre-wrap">
+                <div className="flex items-center justify-between mb-1">
+                  <p className="font-semibold text-ink-soft">Recipient Preview (Identical to what is stored):</p>
+                  <span className="text-[11px] text-ink-faint">n8n adds unsubscribe footer itself</span>
+                </div>
+                <div className="bg-panel p-3 rounded border border-line text-ink leading-relaxed whitespace-pre-wrap font-sans">
                   {samplePreview}
-                  <p className="text-[11px] text-ink-faint mt-2 border-t border-line/60 pt-1">
-                    Reply STOP to unsubscribe.
-                  </p>
                 </div>
               </div>
 
@@ -690,6 +732,7 @@ export default function BroadcastsClient({
                     creating ||
                     Boolean(activeBroadcast) ||
                     !whatsappConnected ||
+                    unknownVariables.length > 0 ||
                     Boolean(estimateData && estimateData.eligible === 0)
                   }
                 >

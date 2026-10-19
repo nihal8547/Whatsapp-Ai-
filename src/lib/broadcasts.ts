@@ -106,21 +106,4 @@ export function estimateCompletionTime(
   return `~${hoursNeeded} hours today (within ${windowStart} - ${windowEnd})`;
 }
 
-/**
- * Renders sample preview of a broadcast template
- */
-export function renderMessagePreview(
-  template: string,
-  sampleName = "Sarah",
-  businessName = "Our Store"
-): string {
-  let rendered = template
-    .replace(/\{name\}/gi, sampleName)
-    .replace(/\{business\}/gi, businessName);
-
-  // Append STOP note as required by WhatsApp compliance
-  if (!rendered.toLowerCase().includes("stop")) {
-    rendered += "\n\nReply STOP to unsubscribe.";
-  }
-  return rendered;
-}
+export { renderMessagePreview } from "./broadcast-preview";

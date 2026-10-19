@@ -23,6 +23,7 @@ export default async function ContactsPage({
             c.last_message_at, COALESCE(um.summary,'') AS summary,
             c.lead_source, c.first_ad_title,
             c.consent_status, c.consent_source, c.consent_at, c.opted_out_at,
+            COALESCE(c.attributes, '{}'::jsonb) AS attributes,
             (SELECT count(*) FROM wa_appointments a
               WHERE a.tenant_id = c.tenant_id AND a.phone = c.phone AND a.status = 'confirmed') AS bookings
        FROM wa_contacts c
@@ -54,9 +55,14 @@ export default async function ContactsPage({
               <Button variant="quiet">Export CSV</Button>
             </a>
             {isOwner && (
-              <Link href="/contacts/import">
-                <Button>Import Contacts</Button>
-              </Link>
+              <>
+                <Link href="/data">
+                  <Button variant="quiet">Data files</Button>
+                </Link>
+                <Link href="/contacts/import">
+                  <Button>Import Contacts</Button>
+                </Link>
+              </>
             )}
           </div>
         }
@@ -147,6 +153,18 @@ export default async function ContactsPage({
                           <p className="text-xs text-ink-faint mt-1">
                             Consent source: <span className="capitalize">{c.consent_source.replace(/_/g, " ")}</span>
                           </p>
+                        )}
+                        {c.attributes && Object.keys(c.attributes).length > 0 && (
+                          <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                            {Object.entries(c.attributes).map(([k, v]) => (
+                              <span
+                                key={k}
+                                className="inline-flex items-center text-[11px] bg-canvas border border-line rounded px-2 py-0.5 text-ink-soft font-mono"
+                              >
+                                <strong className="text-ink font-semibold mr-1">{k}:</strong> {String(v)}
+                              </span>
+                            ))}
+                          </div>
                         )}
                       </div>
                       <div className="text-right shrink-0">

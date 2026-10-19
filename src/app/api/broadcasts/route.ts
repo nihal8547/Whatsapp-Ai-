@@ -103,6 +103,56 @@ export async function POST(req: Request) {
     const importId = body.importId ? Number(body.importId) : null;
     const scheduledAtRaw = body.scheduledAt ? String(body.scheduledAt) : null;
 
+    // Validate variables in template: allow {name}, {business}, and any custom field key for audience
+    const varMatches = Array.from(message.matchAll(/\{([^{}|]+)(?:\|([^{}]*))?\}/g));
+    const usedVariables = varMatches.map((m: any) => ({
+      raw: m[0],
+      key: m[1].trim(),
+      fallback: m[2] !== undefined ? m[2] : null,
+    }));
+
+    let audienceCondition = "c.tenant_id = $1 AND c.consent_status = 'opted_in'";
+    const audienceParams: any[] = [tenantId];
+    if (importId) {
+      audienceParams.push(`import:${importId}`);
+      audienceCondition += ` AND $2 = ANY(c.tags)`;
+    }
+
+    const availableKeyRows = await q<{ key: string }>(
+      `SELECT DISTINCT jsonb_object_keys(c.attributes) AS key
+         FROM wa_contacts c
+        WHERE ${audienceCondition}
+          AND c.attributes IS NOT NULL
+          AND c.attributes != '{}'::jsonb`,
+      audienceParams
+    );
+    const audienceCustomKeys = availableKeyRows.map((r) => r.key);
+    const allowedVariables = new Set(["name", "business", ...audienceCustomKeys.map((k) => k.toLowerCase())]);
+
+    for (const v of usedVariables) {
+      if (!allowedVariables.has(v.key.toLowerCase())) {
+        return Response.json(
+          {
+            ok: false,
+            error: "unknown_variable",
+            message: `Unknown variable '{${v.key}}'. Allowed variables for this audience: {name}, {business}${
+              audienceCustomKeys.length > 0
+                ? ", " + audienceCustomKeys.map((k) => "{" + k + "}").join(", ")
+                : ""
+            }.`,
+          },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Get tenant business name for {business}
+    const bot = await one<{ business_name: string }>(
+      `SELECT business_name FROM wa_bot_settings WHERE tenant_id = $1`,
+      [tenantId]
+    );
+    const businessName = bot?.business_name || "My Business";
+
     let isScheduled = false;
     let scheduledDate: Date | null = null;
     if (scheduledAtRaw) {
@@ -128,29 +178,78 @@ export async function POST(req: Request) {
       );
       const broadcastId = bcRes.rows[0].id;
 
-      // 2. Insert one wa_broadcast_recipients row per ELIGIBLE (opted_in) contact
-      let insertRecipientsQuery = `
-        INSERT INTO wa_broadcast_recipients (broadcast_id, tenant_id, phone, status, created_at)
-        SELECT $1, $2, c.phone, 'queued', now()
-          FROM wa_contacts c
-         WHERE c.tenant_id = $2
-           AND c.consent_status = 'opted_in'
-      `;
-      const queryParams: any[] = [broadcastId, tenantId];
+      // 2. Fetch eligible contacts for this audience
+      const eligibleContactsRes = await client.query(
+        `SELECT c.phone, COALESCE(c.name, '') AS name, COALESCE(c.attributes, '{}'::jsonb) AS attributes
+           FROM wa_contacts c
+          WHERE ${audienceCondition}`,
+        audienceParams
+      );
 
-      if (importId) {
-        queryParams.push(`import:${importId}`);
-        insertRecipientsQuery += ` AND $3 = ANY(c.tags)`;
+      let recipientCount = 0;
+      let blockedCount = 0;
+
+      // 3. Render per recipient and insert into wa_broadcast_recipients
+      for (const contact of eligibleContactsRes.rows) {
+        let recipientStatus = "queued";
+        let skipReason: string | null = null;
+        let renderedText: string | null = message;
+
+        for (const v of usedVariables) {
+          const k = v.key.toLowerCase();
+          let resolvedVal: string | null = null;
+
+          if (k === "name") {
+            resolvedVal = contact.name || v.fallback || "";
+          } else if (k === "business") {
+            resolvedVal = businessName || v.fallback || "";
+          } else {
+            // Custom field key lookup
+            const attrVal = contact.attributes ? contact.attributes[v.key] : undefined;
+            if (attrVal !== undefined && attrVal !== null && String(attrVal).trim() !== "") {
+              resolvedVal = String(attrVal).trim();
+            } else if (v.fallback !== null) {
+              resolvedVal = v.fallback;
+            } else {
+              // Missing field without fallback -> block recipient with clear report
+              recipientStatus = "skipped";
+              skipReason = `missing_variable: ${v.key}`;
+              renderedText = null;
+              break;
+            }
+          }
+
+          if (renderedText !== null) {
+            renderedText = renderedText.replace(v.raw, resolvedVal ?? "");
+          }
+        }
+
+        if (recipientStatus === "queued") {
+          recipientCount++;
+        } else {
+          blockedCount++;
+        }
+
+        await client.query(
+          `INSERT INTO wa_broadcast_recipients (
+             broadcast_id, tenant_id, phone, status, skip_reason, rendered_text, created_at
+           ) VALUES ($1, $2, $3, $4, $5, $6, now())
+           ON CONFLICT (broadcast_id, phone) DO NOTHING`,
+          [
+            broadcastId,
+            tenantId,
+            contact.phone,
+            recipientStatus,
+            skipReason,
+            renderedText,
+          ]
+        );
       }
-
-      insertRecipientsQuery += ` ON CONFLICT (broadcast_id, phone) DO NOTHING RETURNING id`;
-
-      const recRes = await client.query(insertRecipientsQuery, queryParams);
-      const recipientCount = recRes.rowCount || 0;
 
       return {
         broadcastId,
         recipientCount,
+        blockedCount,
         status,
       };
     });
@@ -159,6 +258,7 @@ export async function POST(req: Request) {
       ok: true,
       broadcastId: broadcast.broadcastId,
       recipientsCreated: broadcast.recipientCount,
+      recipientsBlocked: broadcast.blockedCount,
       status: broadcast.status,
     });
   } catch (e) {

@@ -31,6 +31,7 @@ type Detail = {
     handoff_reason: string;
     lead_source?: string;
     first_ad_title?: string;
+    attributes?: Record<string, any>;
   };
   memory: { summary: string; facts: string[] } | null;
   appointments: { id: number; service: string; start_time: string; status: string }[];
@@ -307,6 +308,30 @@ export default function Inbox({ initialPhone, tz }: { initialPhone: string | nul
             )}
 
             <WhatWeKnow memory={detail.memory} />
+
+            {detail.contact.attributes && Object.keys(detail.contact.attributes).length > 0 && (
+              <div className="rounded-xl border border-line bg-panel overflow-hidden shadow-2xs">
+                <div className="flex items-center justify-between px-3 py-2 border-b bg-purple-50/80 border-purple-200/80 text-purple-900">
+                  <div className="flex items-center gap-1.5">
+                    <span className="p-1 rounded-md bg-white/80 text-purple-700 text-xs">📋</span>
+                    <h4 className="text-xs font-semibold tracking-wide">Custom Fields</h4>
+                  </div>
+                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-purple-100 text-purple-700">
+                    {Object.keys(detail.contact.attributes).length}
+                  </span>
+                </div>
+                <div className="p-2 space-y-1.5">
+                  {Object.entries(detail.contact.attributes).map(([k, v]) => (
+                    <div key={k} className="rounded-lg border border-purple-100 bg-purple-50/30 px-2.5 py-1.5">
+                      <span className="text-[10px] font-bold tracking-wider uppercase text-purple-700">
+                        {k.replace(/_/g, " ")}
+                      </span>
+                      <p className="text-xs font-medium text-slate-800 mt-0.5">{String(v)}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div>
               <h3 className="font-semibold text-sm mb-2">Appointments</h3>

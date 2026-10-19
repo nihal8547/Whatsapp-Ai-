@@ -10,7 +10,8 @@ export async function GET(req: Request, ctx: { params: Promise<{ phone: string }
     const contact = await one(
       `SELECT phone, COALESCE(NULLIF(name,''),'') AS name, bot_enabled, needs_human,
               COALESCE(handoff_reason,'') AS handoff_reason,
-              lead_source, first_ad_title
+              lead_source, first_ad_title,
+              COALESCE(attributes, '{}'::jsonb) AS attributes
          FROM wa_contacts WHERE tenant_id = $1 AND phone = $2`,
       [tenantId, digits]
     );

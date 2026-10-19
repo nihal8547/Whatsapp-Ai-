@@ -70,6 +70,18 @@ export async function GET(req: Request) {
       caps.windowEnd
     );
 
+    // Fetch distinct custom field keys for this eligible audience
+    const keysRows = await q<{ key: string }>(
+      `SELECT DISTINCT jsonb_object_keys(c.attributes) AS key
+         FROM wa_contacts c
+        WHERE ${audienceCondition}
+          AND c.consent_status = 'opted_in'
+          AND c.attributes IS NOT NULL
+          AND c.attributes != '{}'::jsonb`,
+      params
+    );
+    const customFieldKeys = keysRows.map((r) => r.key);
+
     return Response.json({
       ok: true,
       eligible,
@@ -83,6 +95,7 @@ export async function GET(req: Request) {
       activeBroadcast: activeBc ?? null,
       businessName: bot?.business_name || "My Business",
       timezone: bot?.timezone || "Asia/Qatar",
+      customFieldKeys,
     });
   } catch (e) {
     return errorResponse(e);
