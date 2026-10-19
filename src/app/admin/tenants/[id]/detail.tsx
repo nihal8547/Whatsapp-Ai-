@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button, Field, inputClass, Panel, Tag, Toast, useToast } from "@/components/ui";
 
+import { fullStamp } from "@/lib/format";
+
 type Tenant = {
   id: number; name: string; slug: string; status: string;
   trial_ends_at: string | Date | null; created_at: string | Date;
@@ -13,11 +15,21 @@ type Tenant = {
   timezone: string | null; admin_phone: string | null;
   broadcasts_enabled?: boolean;
   instance_name: string | null; wa_status: string;
+  disconnected_since?: string | null;
+  reconnected_at?: string | null;
+  proactive_paused_until?: string | null;
+  pause_reason?: string | null;
 };
 type UsageRow = { day: string; msg_received: number; ai_replies: number };
 type Counts = Record<string, string | number>;
 type TeamMember = { email: string; role: string };
 type Plan = { id: number; code: string; name: string };
+export type SafetyEvent = {
+  id: number;
+  kind: string;
+  detail: string;
+  created_at: string;
+};
 
 function toDateInputValue(val: unknown): string {
   if (!val) return "";
@@ -41,11 +53,12 @@ type Last30Days = {
 };
 
 export default function TenantDetail({
-  tenant: init, usage, counts, team, plans, last30Days,
+  tenant: init, usage, counts, team, plans, last30Days, safetyEvents: initEvents = [],
 }: {
   tenant: Tenant; usage: UsageRow[]; counts: Counts;
   team: TeamMember[]; plans: Plan[];
   last30Days?: Last30Days;
+  safetyEvents?: SafetyEvent[];
 }) {
   const router = useRouter();
   const { message, show } = useToast();
@@ -55,6 +68,73 @@ export default function TenantDetail({
   const [savingNotes, setSavingNotes] = useState(false);
   const [savingAction, setSavingAction] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [events, setEvents] = useState<SafetyEvent[]>(initEvents);
+  const [pausing, setPausing] = useState(false);
+
+  const isPaused = Boolean(
+    tenant.proactive_paused_until &&
+    new Date(tenant.proactive_paused_until).getTime() > Date.now()
+  );
+
+  const reconnectedAgoMinutes = tenant.reconnected_at
+    ? Math.floor((Date.now() - new Date(tenant.reconnected_at).getTime()) / 60000)
+    : null;
+  const showResumeNotice = reconnectedAgoMinutes !== null && reconnectedAgoMinutes >= 0 && reconnectedAgoMinutes < 10;
+  const resumeMinutesLeft = Math.max(1, 10 - (reconnectedAgoMinutes ?? 0));
+
+  async function pause24h() {
+    if (!confirm(`Pause all automatic outbound messages for "${tenant.name}" for 24 hours?`)) return;
+    setPausing(true);
+    const res = await fetch(`/api/admin/tenants/${tenant.id}/pause`, { method: "POST" });
+    const data = await res.json();
+    setPausing(false);
+    if (!data.ok) {
+      show("Could not pause automatic messages.");
+      return;
+    }
+    setTenant(t => ({
+      ...t,
+      proactive_paused_until: data.instance?.proactive_paused_until,
+      pause_reason: data.instance?.pause_reason,
+    }));
+    setEvents(prev => [
+      {
+        id: Date.now(),
+        kind: "paused_optouts",
+        detail: "Paused by platform administrator for 24 hours",
+        created_at: new Date().toISOString(),
+      },
+      ...prev,
+    ]);
+    show("Automatic messages paused for 24 hours.");
+  }
+
+  async function unpause() {
+    if (!confirm(`Resume automatic outbound messages for "${tenant.name}"?`)) return;
+    setPausing(true);
+    const res = await fetch(`/api/admin/tenants/${tenant.id}/pause`, { method: "DELETE" });
+    const data = await res.json();
+    setPausing(false);
+    if (!data.ok) {
+      show("Could not resume messages.");
+      return;
+    }
+    setTenant(t => ({
+      ...t,
+      proactive_paused_until: null,
+      pause_reason: null,
+    }));
+    setEvents(prev => [
+      {
+        id: Date.now(),
+        kind: "reconnected",
+        detail: "Pause cleared by platform administrator",
+        created_at: new Date().toISOString(),
+      },
+      ...prev,
+    ]);
+    show("Automatic messages resumed.");
+  }
 
   async function deleteWorkspace() {
     const promptMsg = `Are you absolutely sure you want to permanently delete "${tenant.name}"?\n\nThis will ERASE all contacts, messages, appointments, media files, and user accounts for this workspace.\n\nThis action CANNOT be undone.\n\nType the workspace slug "${tenant.slug}" to confirm:`;
@@ -189,16 +269,98 @@ export default function TenantDetail({
             </dl>
           </Panel>
 
-          {/* ── WhatsApp ── */}
+          {/* ── WhatsApp & Safety ── */}
           <Panel>
-            <h2 className="font-semibold mb-3">WhatsApp</h2>
-            <dl className="space-y-2 text-sm">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="font-semibold">WhatsApp & Safety</h2>
+              <Tag tone={tenant.wa_status === "connected" ? "good" : "bad"}>
+                {tenant.wa_status === "connected" ? "Connected" : "Disconnected"}
+              </Tag>
+            </div>
+            <dl className="space-y-2.5 text-sm">
               <InfoRow label="Instance" value={tenant.instance_name ?? "—"} mono />
-              <div className="flex justify-between">
-                <dt className="text-ink-soft">Connection</dt>
-                <dd><Tag tone={tenant.wa_status === "connected" ? "good" : "neutral"}>{tenant.wa_status}</Tag></dd>
+
+              {tenant.wa_status !== "connected" && tenant.disconnected_since && (
+                <div className="flex justify-between text-xs text-brick">
+                  <span>Disconnected since</span>
+                  <span>{fullStamp(tenant.disconnected_since, tenant.timezone || undefined)}</span>
+                </div>
+              )}
+
+              {showResumeNotice && (
+                <div className="p-2.5 bg-amber-wash text-amber rounded text-xs font-medium">
+                  Recently reconnected, automatic messages resume in {resumeMinutesLeft} minute{resumeMinutesLeft === 1 ? "" : "s"}.
+                </div>
+              )}
+
+              <div className="pt-2 border-t border-line flex items-center justify-between">
+                <div>
+                  <dt className="text-ink-soft">Automatic messages</dt>
+                  <dd className="text-xs mt-0.5">
+                    {isPaused ? (
+                      <span className="text-amber font-medium">
+                        Paused until {fullStamp(tenant.proactive_paused_until!, tenant.timezone || undefined)}
+                      </span>
+                    ) : (
+                      <span className="text-pine-deep font-medium">Active (Not paused)</span>
+                    )}
+                  </dd>
+                </div>
+                <div>
+                  {isPaused ? (
+                    <Button
+                      variant="quiet"
+                      disabled={pausing}
+                      onClick={unpause}
+                      className="text-xs py-1 px-2.5"
+                    >
+                      {pausing ? "Resuming…" : "Resume now"}
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="quiet"
+                      disabled={pausing}
+                      onClick={pause24h}
+                      className="text-xs py-1 px-2.5 text-amber hover:text-amber"
+                    >
+                      {pausing ? "Pausing…" : "Pause for 24 hours"}
+                    </Button>
+                  )}
+                </div>
               </div>
+
+              {isPaused && tenant.pause_reason && (
+                <p className="text-xs text-ink-soft italic bg-canvas p-2 rounded">
+                  Reason: {tenant.pause_reason}
+                </p>
+              )}
             </dl>
+
+            {/* ── Safety Events ── */}
+            <div className="mt-4 pt-4 border-t border-line">
+              <h3 className="text-xs font-semibold text-ink-soft uppercase tracking-wider mb-2">
+                Recent Safety Events ({events.length})
+              </h3>
+              {events.length === 0 ? (
+                <p className="text-xs text-ink-soft italic">No safety events recorded yet.</p>
+              ) : (
+                <ul className="divide-y divide-line max-h-56 overflow-y-auto -mx-2 px-2 text-xs">
+                  {events.map(e => (
+                    <li key={e.id} className="py-2 flex items-start justify-between gap-3">
+                      <div>
+                        <span className="font-medium text-ink capitalize mr-2">
+                          {e.kind.replace(/_/g, " ")}
+                        </span>
+                        <p className="text-ink-soft mt-0.5">{e.detail || "No details provided"}</p>
+                      </div>
+                      <span className="text-ink-faint whitespace-nowrap shrink-0">
+                        {fullStamp(e.created_at, tenant.timezone || undefined)}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
           </Panel>
         </div>
 

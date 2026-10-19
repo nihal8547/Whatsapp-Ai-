@@ -30,7 +30,8 @@ export default async function AdminPage() {
               COALESCE(webhook_secret_enforced, false) AS webhook_secret_enforced,
               COALESCE(evolution_url,'') AS evolution_url,
               COALESCE(webhook_url,'') AS webhook_url,
-              COALESCE(broadcast_daily_max, 200) AS broadcast_daily_max
+              COALESCE(broadcast_daily_max, 200) AS broadcast_daily_max,
+              COALESCE(proactive_enabled, true) AS proactive_enabled
          FROM wa_platform_settings WHERE id = 1`
     ),
     one(`
@@ -73,6 +74,7 @@ export default async function AdminPage() {
       platformSettings={platformSettings ?? {
         dashboard_url: "", alert_phone: "", alert_instance: "",
         webhook_secret_enforced: false, evolution_url: "", webhook_url: "",
+        proactive_enabled: true,
       }}
       overview={overview ?? {}}
       platform30Days={platform30Days ?? {

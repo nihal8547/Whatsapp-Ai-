@@ -19,6 +19,7 @@ type PlatformSettings = {
   dashboard_url: string; alert_phone: string; alert_instance: string;
   webhook_secret_enforced: boolean; evolution_url: string; webhook_url: string;
   broadcast_daily_max?: number;
+  proactive_enabled?: boolean;
 };
 type Overview = Record<string, string | number>;
 
@@ -253,6 +254,32 @@ export default function AdminShell({
                   checked={!!ps.webhook_secret_enforced}
                   onChange={e => setPs({ ...ps, webhook_secret_enforced: e.target.checked })} />
                 Enforce webhook secret header
+              </label>
+            </div>
+            <div className="sm:col-span-2 pt-3 border-t border-line">
+              <label className="flex items-start gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  className="mt-0.5 rounded text-pine focus:ring-pine"
+                  checked={ps.proactive_enabled !== false}
+                  onChange={e => {
+                    const nextVal = e.target.checked;
+                    const msg = nextVal
+                      ? "Enable automatic proactive messages globally across all workspaces?"
+                      : "Are you sure you want to DISABLE automatic proactive messages globally across all workspaces? This will pause all automated outbound bot/system triggers.";
+                    if (confirm(msg)) {
+                      setPs({ ...ps, proactive_enabled: nextVal });
+                    }
+                  }}
+                />
+                <div>
+                  <span className="font-medium text-sm text-ink">
+                    Global automatic proactive messages enabled
+                  </span>
+                  <p className="text-xs text-ink-soft mt-0.5">
+                    Master kill-switch. When disabled, automatic proactive messages (broadcasts, follow-ups, review requests) are blocked for all workspaces.
+                  </p>
+                </div>
               </label>
             </div>
             <div className="sm:col-span-2">

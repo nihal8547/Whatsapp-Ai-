@@ -27,6 +27,7 @@ export const NAV_REGISTRY: NavItem[] = [
   { href: "/media", defaultLabel: "Media library", module: "media", pageExists: true },
   { href: "/assistant", defaultLabel: "Assistant", pageExists: true },
   { href: "/whatsapp", defaultLabel: "WhatsApp number", pageExists: true },
+  { href: "/safety", defaultLabel: "Safety", pageExists: true },
   { href: "/settings", defaultLabel: "Settings", pageExists: true },
   { href: "/team", defaultLabel: "Team", pageExists: true },
   // Active modules:
@@ -48,6 +49,7 @@ type Props = {
     repliesUsed: number;
     replyLimit: number | null;
     trialEndsAt: string | null;
+    safetyWarning?: boolean;
   };
   modules?: string[];
   labels?: Record<string, string>;
@@ -115,11 +117,17 @@ export default function Sidebar({ session, tenant, modules = [], labels = {} }: 
                 key={l.href}
                 href={l.href}
                 onClick={() => setOpen(false)}
-                className={`block px-3 py-2 rounded-md text-sm transition-colors ${
+                className={`flex items-center justify-between px-3 py-2 rounded-md text-sm transition-colors ${
                   active ? "bg-pine-wash text-pine-deep font-medium" : "text-ink-soft hover:bg-canvas"
                 }`}
               >
-                {labelText}
+                <span>{labelText}</span>
+                {l.href === "/safety" && tenant.safetyWarning && (
+                  <span
+                    className="w-2 h-2 rounded-full bg-amber shrink-0 animate-pulse"
+                    title="Safety warning: WhatsApp disconnected or automatic messages paused"
+                  />
+                )}
               </Link>
             );
           })}

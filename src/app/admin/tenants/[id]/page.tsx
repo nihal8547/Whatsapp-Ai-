@@ -24,7 +24,11 @@ export default async function TenantDetailPage({
             COALESCE(p.name,'No plan') AS plan, p.id AS plan_id, p.price_qar,
             bs.timezone, bs.admin_phone,
             COALESCE((bs.broadcast_settings->>'enabled')::boolean, true) AS broadcasts_enabled,
-            i.instance_name, COALESCE(i.status,'none') AS wa_status
+            i.instance_name, COALESCE(i.status,'none') AS wa_status,
+            to_char(i.disconnected_since, 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS disconnected_since,
+            to_char(i.reconnected_at, 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS reconnected_at,
+            to_char(i.proactive_paused_until, 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS proactive_paused_until,
+            i.pause_reason
        FROM wa_tenants t
        LEFT JOIN wa_plans p ON p.id = t.plan_id
        LEFT JOIN wa_bot_settings bs ON bs.tenant_id = t.id
@@ -34,7 +38,7 @@ export default async function TenantDetailPage({
   );
   if (!tenant) notFound();
 
-  const [usage, counts, team, plans, last30Days] = await Promise.all([
+  const [usage, counts, team, plans, last30Days, safetyEvents] = await Promise.all([
     q(
       `SELECT to_char(day,'YYYY-MM-DD') AS day, messages_in AS msg_received, ai_replies
          FROM wa_usage_daily WHERE tenant_id = $1 ORDER BY day DESC LIMIT 30`,
@@ -69,6 +73,20 @@ export default async function TenantDetailPage({
           AND day >= (CURRENT_DATE - 29)`,
       [id]
     ),
+    q<{
+      id: number;
+      kind: string;
+      detail: string;
+      created_at: string;
+    }>(
+      `SELECT id, kind, detail,
+              to_char(created_at, 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS created_at
+         FROM wa_safety_events
+        WHERE tenant_id = $1
+        ORDER BY created_at DESC, id DESC
+        LIMIT 50`,
+      [id]
+    ),
   ]);
 
   return (
@@ -79,6 +97,7 @@ export default async function TenantDetailPage({
       team={team}
       plans={plans}
       last30Days={last30Days ?? { messages_in: 0, new_contacts: 0, bookings_created: 0, ad_leads: 0 }}
+      safetyEvents={safetyEvents ?? []}
     />
   );
 }

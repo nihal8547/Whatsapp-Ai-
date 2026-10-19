@@ -17,7 +17,9 @@ export default async function DeskLayout({ children }: { children: React.ReactNo
             p.monthly_reply_limit,
             COALESCE((SELECT SUM(ai_replies) FROM wa_usage_daily u
                        WHERE u.tenant_id = t.id AND u.day >= date_trunc('month', now())::date), 0) AS replies_used,
-            (SELECT status FROM wa_instances i WHERE i.tenant_id = t.id) AS wa_status
+            (SELECT status FROM wa_instances i WHERE i.tenant_id = t.id) AS wa_status,
+            COALESCE((SELECT (COALESCE(status, 'none') != 'connected' OR (proactive_paused_until IS NOT NULL AND proactive_paused_until > now()))
+                        FROM wa_instances i WHERE i.tenant_id = t.id), true) AS safety_warning
        FROM wa_tenants t LEFT JOIN wa_plans p ON p.id = t.plan_id
       WHERE t.id = $1`,
     [session.tenantId]
@@ -37,6 +39,7 @@ export default async function DeskLayout({ children }: { children: React.ReactNo
           repliesUsed: Number(tenant?.replies_used ?? 0),
           replyLimit: tenant?.monthly_reply_limit ? Number(tenant.monthly_reply_limit) : null,
           trialEndsAt: tenant?.trial_ends_at ? String(tenant.trial_ends_at) : null,
+          safetyWarning: Boolean(tenant?.safety_warning),
         }}
         modules={config.modules}
         labels={config.labels}
