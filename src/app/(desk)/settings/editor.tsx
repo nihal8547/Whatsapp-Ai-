@@ -15,11 +15,12 @@ type BusinessPackItem = {
 
 const ALL_MODULES = [
   { code: "appointments", name: "Appointments & Bookings", desc: "Manage client bookings, calendars, and working hours.", built: true },
+  { code: "orders", name: "Orders & Cart", desc: "Take customer orders directly via WhatsApp.", built: true },
+  { code: "catalog", name: "Catalog / Products", desc: "Browse products, room types, or menu items.", built: true },
+  { code: "leads", name: "Leads & Enquiries", desc: "Track sales opportunities and follow up with hot prospects.", built: true },
+  { code: "ads", name: "Ad Playbooks", desc: "Automate custom responses and media for ad campaign leads.", built: true },
   { code: "faq", name: "FAQ Knowledge Base", desc: "Answer recurring questions automatically from verified answers.", built: true },
   { code: "media", name: "Media Library", desc: "Share brochures, pricing PDFs, and photos with customers.", built: true },
-  { code: "catalog", name: "Catalog / Products", desc: "Browse products, room types, or menu items.", built: false },
-  { code: "orders", name: "Orders & Cart", desc: "Take customer orders directly via WhatsApp.", built: false },
-  { code: "leads", name: "Leads & Enquiries", desc: "Track sales opportunities and follow up with hot prospects.", built: false },
   { code: "stays", name: "Stays & Hospitality", desc: "Hotel room check-in and reservation management.", built: false },
   { code: "resources", name: "Staff / Tables / Rooms", desc: "Assign stylists, tables, or doctors to bookings.", built: false },
   { code: "quotes", name: "Custom Quotes", desc: "Prepare bespoke price estimates for complex requests.", built: false },

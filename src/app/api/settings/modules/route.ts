@@ -4,11 +4,12 @@ import { getTenantConfig } from "@/lib/packs";
 
 const ALL_MODULES = [
   { code: "appointments", name: "Appointments & Bookings", built: true },
+  { code: "orders", name: "Orders & Cart", built: true },
+  { code: "catalog", name: "Catalog / Products / Menu", built: true },
+  { code: "leads", name: "Leads & Enquiries", built: true },
+  { code: "ads", name: "Ad Playbooks", built: true },
   { code: "faq", name: "FAQ Knowledge Base", built: true },
   { code: "media", name: "Media Library", built: true },
-  { code: "catalog", name: "Catalog / Products / Menu", built: false },
-  { code: "orders", name: "Orders & Cart", built: false },
-  { code: "leads", name: "Leads & Enquiries", built: false },
   { code: "stays", name: "Stays & Hospitality", built: false },
   { code: "resources", name: "Staff / Rooms / Tables", built: false },
   { code: "quotes", name: "Price Quotes", built: false },
