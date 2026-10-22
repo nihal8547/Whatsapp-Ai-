@@ -48,6 +48,7 @@ type Props = {
   isOwner: boolean;
   orderLabel: string;
   ordersLabel: string;
+  companyName?: string;
 };
 
 const COLUMNS: Array<{ id: Order["status"]; title: string; tone: "warn" | "neutral" | "good" }> = [
@@ -59,7 +60,7 @@ const COLUMNS: Array<{ id: Order["status"]; title: string; tone: "warn" | "neutr
   { id: "completed", title: "Completed (24h)", tone: "good" },
 ];
 
-export default function OrdersClient({ tenantId, isOwner, orderLabel, ordersLabel }: Props) {
+export default function OrdersClient({ tenantId, isOwner, orderLabel, ordersLabel, companyName }: Props) {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"board" | "cancelled" | "rejected">("board");
@@ -921,7 +922,9 @@ export default function OrdersClient({ tenantId, isOwner, orderLabel, ordersLabe
 
             <div id="print-ticket" className="space-y-3">
               <div className="text-center border-b border-black pb-2">
-                <h2 className="text-base font-bold tracking-tight">KITCHEN / PACKING TICKET</h2>
+                <h2 className="text-base font-black tracking-tight uppercase">
+                  {companyName || "ORDER TICKET"}
+                </h2>
                 <p className="text-lg font-black mt-1">ORDER #{printOrder.order_no}</p>
                 <p className="text-[10px] text-gray-600 mt-0.5">
                   {new Date(printOrder.placed_at || printOrder.created_at).toLocaleString()}
