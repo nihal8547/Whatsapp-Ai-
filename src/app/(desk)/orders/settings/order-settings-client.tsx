@@ -241,25 +241,86 @@ export default function OrderSettingsClient({ tenantId, initialSettings, initial
             </Field>
           )}
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-            <Field label="Acceptance Mode" hint="Manual requires staff confirmation; Auto moves orders to Accepted automatically">
-              <select
-                value={settings.accept_mode}
-                onChange={(e) => setSettings({ ...settings, accept_mode: e.target.value as any })}
-                className={inputClass}
+          {/* Acceptance Mode Selection Cards */}
+          <div className="pt-2 space-y-2">
+            <label className="text-sm font-medium block">
+              Order Acceptance Mode{" "}
+              <span className="text-pine font-semibold">
+                ({settings.accept_mode === "auto" ? "⚡ Auto-Accept" : "🛡️ Manual Review"})
+              </span>
+            </label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setSettings({ ...settings, accept_mode: "manual" })}
+                className={`p-4 rounded-xl border text-left transition-all ${
+                  settings.accept_mode === "manual"
+                    ? "border-pine bg-pine/5 ring-2 ring-pine/20"
+                    : "border-line bg-canvas hover:border-ink-soft/40"
+                }`}
               >
-                <option value="manual">Manual (Staff accepts each order)</option>
-                <option value="auto">Auto (Immediately accepted)</option>
-              </select>
-            </Field>
+                <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-base">🛡️</span>
+                    <span className="font-semibold text-sm text-ink">Manual Review</span>
+                  </div>
+                  {settings.accept_mode === "manual" && (
+                    <span className="text-[10px] font-bold uppercase tracking-wider bg-pine text-white px-2 py-0.5 rounded-full">
+                      Active
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-ink-soft mt-1 leading-relaxed">
+                  Orders arrive as <strong className="text-ink">New / Pending</strong>. Staff manually verifies customer details and clicks &quot;Accept Order&quot; on the board.
+                </p>
+              </button>
 
-            <Field label="Default Preparation Time" hint="Estimated prep time in minutes">
+              <button
+                type="button"
+                onClick={() => setSettings({ ...settings, accept_mode: "auto" })}
+                className={`p-4 rounded-xl border text-left transition-all ${
+                  settings.accept_mode === "auto"
+                    ? "border-pine bg-pine/5 ring-2 ring-pine/20"
+                    : "border-line bg-canvas hover:border-ink-soft/40"
+                }`}
+              >
+                <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-base">⚡</span>
+                    <span className="font-semibold text-sm text-ink">Auto-Accept</span>
+                  </div>
+                  {settings.accept_mode === "auto" && (
+                    <span className="text-[10px] font-bold uppercase tracking-wider bg-pine text-white px-2 py-0.5 rounded-full">
+                      Active
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-ink-soft mt-1 leading-relaxed">
+                  Orders are <strong className="text-ink">instantly Accepted</strong>. The bot immediately informs the customer of estimated delivery/prep time and alerts staff.
+                </p>
+              </button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+            <Field label="Default Preparation Time (Minutes)" hint="Estimated prep time sent to customer upon order acceptance">
               <input
                 type="number"
                 min="5"
                 step="5"
                 value={settings.prep_minutes}
                 onChange={(e) => setSettings({ ...settings, prep_minutes: Number(e.target.value) })}
+                className={inputClass}
+              />
+            </Field>
+
+            <Field label="Minimum Order Value (QAR)" hint="Optional minimum total amount required to place an order (0 = no minimum)">
+              <input
+                type="number"
+                min="0"
+                step="1"
+                value={settings.min_order}
+                onChange={(e) => setSettings({ ...settings, min_order: Number(e.target.value) })}
                 className={inputClass}
               />
             </Field>

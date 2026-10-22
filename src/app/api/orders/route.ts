@@ -128,7 +128,16 @@ export async function POST(req: Request) {
         [tenantId, phone, customerName]
       );
 
-      // 3. Insert into wa_orders
+      // 3. Fetch tenant order settings for accept_mode
+      const bsRow = await client.query(
+        `SELECT order_settings FROM wa_bot_settings WHERE tenant_id = $1`,
+        [tenantId]
+      );
+      const orderSettings = bsRow.rows[0]?.order_settings || {};
+      const acceptMode = orderSettings.accept_mode === "auto" ? "auto" : "manual";
+      const initialStatus = body.status || (acceptMode === "auto" ? "accepted" : "pending");
+
+      // 4. Insert into wa_orders
       const orderRes = await client.query(
         `INSERT INTO wa_orders (
            tenant_id, phone, order_no, status, fulfilment,
@@ -137,14 +146,14 @@ export async function POST(req: Request) {
            payment_method, payment_status, staff_alerted, placed_at
          )
          VALUES (
-           $1, $2, $3, 'pending', $4,
-           NULLIF($5, ''), NULLIF($6, ''), $7, $8,
-           $9, $10, $11, NULLIF($12, ''), NULLIF($13, ''),
-           $14, $15, true, now()
+           $1, $2, $3, $4, $5,
+           NULLIF($6, ''), NULLIF($7, ''), $8, $9,
+           $10, $11, $12, NULLIF($13, ''), NULLIF($14, ''),
+           $15, $16, true, now()
          )
          RETURNING *`,
         [
-          tenantId, phone, orderNo, fulfilment,
+          tenantId, phone, orderNo, initialStatus, fulfilment,
           addressText, customerName, subtotal, deliveryFee,
           discount, total, currency, notes, staffNotes,
           paymentMethod, paymentStatus
