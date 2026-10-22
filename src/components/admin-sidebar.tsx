@@ -15,6 +15,7 @@ type Session = {
 const NAV_ITEMS = [
   { href: "/admin", label: "Workspaces", icon: "🏢" },
   { href: "/admin/overview", label: "Overview & Stats", icon: "📊" },
+  { href: "/admin/packs", label: "Business Types & Packs", icon: "📦" },
   { href: "/admin/broadcasts", label: "Broadcast Controls", icon: "📢" },
   { href: "/admin/plans", label: "Plans & Pricing", icon: "🏷️" },
   { href: "/admin/settings", label: "Platform Settings", icon: "⚙️" },

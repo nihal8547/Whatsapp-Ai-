@@ -10,7 +10,7 @@ import { fullStamp } from "@/lib/format";
 type Tenant = {
   id: number; name: string; slug: string; status: string;
   trial_ends_at: string | Date | null; created_at: string | Date;
-  business_type: string | null; admin_notes: string;
+  business_type: string | null; pack_code?: string | null; admin_notes: string;
   plan: string; plan_id: number | null;
   timezone: string | null; admin_phone: string | null;
   modules?: string[] | null;
@@ -473,6 +473,36 @@ export default function TenantDetail({
               >
                 {["trial", "active", "suspended", "cancelled"].map(s => (
                   <option key={s} value={s}>{s}</option>
+                ))}
+              </select>
+            </Field>
+
+            <Field label="Business Type" hint="Defines default modules and terminology">
+              <select
+                className={inputClass}
+                value={tenant.business_type ?? "other"}
+                disabled={savingAction}
+                onChange={e => {
+                  const next = e.target.value;
+                  if (confirm(`Change business type to "${next}" for "${tenant.name}"? This will update the workspace's default business pack.`)) {
+                    patch({ business_type: next });
+                  }
+                }}
+              >
+                {[
+                  { id: "clinic", label: "Clinic / Hospital" },
+                  { id: "travels", label: "Travels & Tours" },
+                  { id: "hotel", label: "Hostel / Hotel" },
+                  { id: "realestate", label: "Real Estate" },
+                  { id: "grocery", label: "Grocery / Supermarket" },
+                  { id: "tech", label: "IT Agency / Tech Company" },
+                  { id: "restaurant", label: "Restaurant / Cafe" },
+                  { id: "education", label: "Education / Coaching" },
+                  { id: "retail", label: "Retail / E-commerce" },
+                  { id: "salon", label: "Salons / Spas" },
+                  { id: "other", label: "General Business / Other" },
+                ].map(bt => (
+                  <option key={bt.id} value={bt.id}>{bt.label}</option>
                 ))}
               </select>
             </Field>

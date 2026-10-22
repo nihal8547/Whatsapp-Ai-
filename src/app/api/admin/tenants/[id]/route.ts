@@ -66,6 +66,27 @@ export async function PATCH(
     const { id } = await ctx.params;
     const b = await req.json();
 
+    if (b.business_type !== undefined) {
+      const nextType = String(b.business_type).trim().toLowerCase();
+      const packCode = ["clinic", "travels", "hotel", "real_estate", "grocery", "it_agency", "restaurant", "education", "retail", "salon"].includes(nextType)
+        ? nextType
+        : (nextType === "tech" ? "it_agency" : nextType === "hostel" ? "hotel" : nextType === "realestate" ? "real_estate" : "other");
+
+      const packRow = await one<{ modules: any; labels: any }>(
+        `SELECT modules, labels FROM wa_business_packs WHERE code = $1`,
+        [packCode]
+      );
+
+      await one(
+        `UPDATE wa_tenants SET
+           business_type = $2,
+           pack_code     = $3,
+           labels        = COALESCE($4::jsonb, labels)
+         WHERE id = $1::int`,
+        [id, nextType, packCode, packRow ? JSON.stringify(packRow.labels) : null]
+      );
+    }
+
     const row = await one(
       `UPDATE wa_tenants SET
          status        = COALESCE(NULLIF($2,''), status),
@@ -78,7 +99,7 @@ export async function PATCH(
                            ELSE modules 
                          END
        WHERE id = $1::int
-       RETURNING id, status, plan_id, admin_notes, modules`,
+       RETURNING id, name, slug, status, plan_id, admin_notes, modules, business_type, pack_code`,
       [
         id,
         ["trial", "active", "suspended", "cancelled"].includes(b.status) ? b.status : "",
