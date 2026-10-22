@@ -34,6 +34,7 @@ export const NAV_REGISTRY: NavItem[] = [
   { href: "/catalog", defaultLabel: "Catalog", labelKey: "catalog", module: "catalog", pageExists: true },
   { href: "/orders", defaultLabel: "Orders", labelKey: "orders", module: "orders", pageExists: true },
   { href: "/leads", defaultLabel: "Leads", labelKey: "leads", module: "leads", pageExists: true },
+  { href: "/ads", defaultLabel: "Ad Playbooks", module: "ads", pageExists: true },
   // Modules not built yet:
   { href: "/stays", defaultLabel: "Stays", module: "stays", pageExists: false },
   { href: "/resources", defaultLabel: "Resources", labelKey: "resources", module: "resources", pageExists: false },
