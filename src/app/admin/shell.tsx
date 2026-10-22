@@ -105,13 +105,19 @@ export default function AdminShell({
             href="/admin/overview"
             className="text-xs text-ink-soft hover:text-ink border border-line rounded px-3 py-1.5 hover:bg-canvas"
           >
-            📊 View Stats
+            Platform Stats
+          </Link>
+          <Link
+            href="/admin/packs"
+            className="text-xs text-ink-soft hover:text-ink border border-line rounded px-3 py-1.5 hover:bg-canvas"
+          >
+            Business Types
           </Link>
           <Link
             href="/admin/broadcasts"
             className="text-xs text-ink-soft hover:text-ink border border-line rounded px-3 py-1.5 hover:bg-canvas"
           >
-            📢 Broadcast Governance
+            Broadcast Controls
           </Link>
         </div>
       </div>
@@ -188,10 +194,10 @@ export default function AdminShell({
                           variant="quiet"
                           disabled={switchingId === t.id}
                           onClick={() => impersonate(t.id, t.name)}
-                          className="text-xs py-1 px-2 text-pine hover:bg-pine-wash/40"
+                          className="text-xs py-1 px-2.5 text-pine hover:bg-pine-wash/40 font-medium"
                           title="Instant switch into workspace desk"
                         >
-                          {switchingId === t.id ? "…" : "⚡ Login"}
+                          {switchingId === t.id ? "…" : "Login"}
                         </Button>
                         <Link
                           href={`/admin/tenants/${t.id}`}

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Panel, PageHead, Button, Field, inputClass, Tag, Toast } from "@/components/ui";
+import { ShieldIcon, ZapIcon } from "@/components/icons";
 
 export type DeliveryZone = {
   id: number;
@@ -246,7 +247,7 @@ export default function OrderSettingsClient({ tenantId, initialSettings, initial
             <label className="text-sm font-medium block">
               Order Acceptance Mode{" "}
               <span className="text-pine font-semibold">
-                ({settings.accept_mode === "auto" ? "⚡ Auto-Accept" : "🛡️ Manual Review"})
+                ({settings.accept_mode === "auto" ? "Auto-Accept" : "Manual Review"})
               </span>
             </label>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -261,7 +262,7 @@ export default function OrderSettingsClient({ tenantId, initialSettings, initial
               >
                 <div className="flex items-center justify-between mb-1">
                   <div className="flex items-center gap-2">
-                    <span className="text-base">🛡️</span>
+                    <ShieldIcon className="w-4 h-4 text-pine shrink-0" />
                     <span className="font-semibold text-sm text-ink">Manual Review</span>
                   </div>
                   {settings.accept_mode === "manual" && (
@@ -286,7 +287,7 @@ export default function OrderSettingsClient({ tenantId, initialSettings, initial
               >
                 <div className="flex items-center justify-between mb-1">
                   <div className="flex items-center gap-2">
-                    <span className="text-base">⚡</span>
+                    <ZapIcon className="w-4 h-4 text-pine shrink-0" />
                     <span className="font-semibold text-sm text-ink">Auto-Accept</span>
                   </div>
                   {settings.accept_mode === "auto" && (

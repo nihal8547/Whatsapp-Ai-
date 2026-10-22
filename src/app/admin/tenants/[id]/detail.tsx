@@ -4,6 +4,15 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button, Field, inputClass, Panel, Tag, Toast, useToast } from "@/components/ui";
+import {
+  ShoppingCartIcon,
+  BookOpenIcon,
+  CalendarIcon,
+  TargetIcon,
+  MegaphoneIcon,
+  HelpCircleIcon,
+  ImageIcon,
+} from "@/components/icons";
 
 import { fullStamp } from "@/lib/format";
 
@@ -224,9 +233,9 @@ export default function TenantDetail({
             variant="primary"
             disabled={switching}
             onClick={impersonateWorkspace}
-            className="text-xs py-1.5 px-3 flex items-center gap-1.5"
+            className="text-xs py-1.5 px-3 flex items-center gap-1.5 font-medium"
           >
-            <span>⚡ Login to Desk</span>
+            <span>Login to Desk</span>
           </Button>
           <Link href={`/desk?tenant=${tenant.id}`}
             className="text-xs text-ink-soft hover:text-ink border border-line rounded px-2.5 py-1.5 hover:bg-canvas">
@@ -590,18 +599,20 @@ export default function TenantDetail({
 
           <div className="mt-4 grid sm:grid-cols-2 md:grid-cols-3 gap-3">
             {[
-              { code: "orders", name: "Orders & Cart", icon: "🛒" },
-              { code: "catalog", name: "Catalog / Menu", icon: "📋" },
-              { code: "appointments", name: "Appointments & Bookings", icon: "📅" },
-              { code: "leads", name: "Leads & Enquiries", icon: "🎯" },
-              { code: "ads", name: "Ad Playbooks", icon: "📣" },
-              { code: "faq", name: "FAQ Knowledge Base", icon: "❓" },
-              { code: "media", name: "Media Library", icon: "🖼️" },
+              { code: "orders", name: "Orders & Cart", icon: ShoppingCartIcon },
+              { code: "catalog", name: "Catalog / Menu", icon: BookOpenIcon },
+              { code: "appointments", name: "Appointments & Bookings", icon: CalendarIcon },
+              { code: "leads", name: "Leads & Enquiries", icon: TargetIcon },
+              { code: "ads", name: "Ad Playbooks", icon: MegaphoneIcon },
+              { code: "faq", name: "FAQ Knowledge Base", icon: HelpCircleIcon },
+              { code: "media", name: "Media Library", icon: ImageIcon },
             ].map(mod => {
               // Active if in tenant.modules, or if tenant.modules is null/unset then check standard active default
               const isEnabled = Array.isArray(tenant.modules)
                 ? tenant.modules.includes(mod.code)
                 : ["orders", "catalog", "appointments", "leads", "ads", "faq", "media"].includes(mod.code);
+
+              const ModIcon = mod.icon;
 
               return (
                 <div
@@ -633,7 +644,7 @@ export default function TenantDetail({
                     />
                     <div className="min-w-0">
                       <p className="text-sm font-medium text-ink flex items-center gap-1.5">
-                        <span>{mod.icon}</span>
+                        <ModIcon className="w-4 h-4 text-pine shrink-0" />
                         <span>{mod.name}</span>
                       </p>
                       <p className="text-[11px] text-ink-soft mt-0.5">

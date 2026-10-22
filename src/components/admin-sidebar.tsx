@@ -12,15 +12,26 @@ type Session = {
   hasOwnTenant: boolean;
 };
 
+import {
+  BuildingIcon,
+  BarChartIcon,
+  BoxIcon,
+  MegaphoneIcon,
+  TagIcon,
+  SettingsIcon,
+  ShieldIcon,
+  ImageIcon,
+} from "@/components/icons";
+
 const NAV_ITEMS = [
-  { href: "/admin", label: "Workspaces", icon: "🏢" },
-  { href: "/admin/overview", label: "Overview & Stats", icon: "📊" },
-  { href: "/admin/packs", label: "Business Types & Packs", icon: "📦" },
-  { href: "/admin/broadcasts", label: "Broadcast Controls", icon: "📢" },
-  { href: "/admin/plans", label: "Plans & Pricing", icon: "🏷️" },
-  { href: "/admin/settings", label: "Platform Settings", icon: "⚙️" },
-  { href: "/admin/safety", label: "Safety & Logs", icon: "🛡️" },
-  { href: "/media", label: "Media Library", icon: "🖼️" },
+  { href: "/admin", label: "Workspaces", icon: BuildingIcon },
+  { href: "/admin/overview", label: "Overview & Stats", icon: BarChartIcon },
+  { href: "/admin/packs", label: "Business Types & Packs", icon: BoxIcon },
+  { href: "/admin/broadcasts", label: "Broadcast Controls", icon: MegaphoneIcon },
+  { href: "/admin/plans", label: "Plans & Pricing", icon: TagIcon },
+  { href: "/admin/settings", label: "Platform Settings", icon: SettingsIcon },
+  { href: "/admin/safety", label: "Safety & Logs", icon: ShieldIcon },
+  { href: "/media", label: "Media Library", icon: ImageIcon },
 ];
 
 export default function AdminSidebar({ session }: { session: Session }) {
@@ -101,6 +112,7 @@ export default function AdminSidebar({ session }: { session: Session }) {
                   ? path === "/admin"
                   : path === item.href || (path.startsWith(item.href) && item.href !== "/admin"));
 
+              const Icon = item.icon;
               return (
                 <Link
                   key={item.href}
@@ -112,7 +124,7 @@ export default function AdminSidebar({ session }: { session: Session }) {
                       : "text-ink-soft hover:bg-canvas hover:text-ink"
                   }`}
                 >
-                  <span className="text-base" aria-hidden>{item.icon}</span>
+                  <Icon className="w-4 h-4 shrink-0 text-current opacity-85" />
                   <span>{item.label}</span>
                 </Link>
               );

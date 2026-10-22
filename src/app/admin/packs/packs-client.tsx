@@ -2,6 +2,19 @@
 
 import { useState } from "react";
 import { Button, Panel, PageHead, Tag, Toast, useToast } from "@/components/ui";
+import {
+  ShoppingCartIcon,
+  BookOpenIcon,
+  CalendarIcon,
+  TargetIcon,
+  MegaphoneIcon,
+  HelpCircleIcon,
+  ImageIcon,
+  HotelIcon,
+  UsersIcon,
+  FileTextIcon,
+  UtensilsIcon,
+} from "@/components/icons";
 
 type Pack = {
   code: string;
@@ -13,17 +26,17 @@ type Pack = {
 };
 
 const AVAILABLE_MODULES = [
-  { code: "orders", name: "Orders & Cart", icon: "🛒" },
-  { code: "catalog", name: "Catalog / Products / Menu", icon: "📋" },
-  { code: "appointments", name: "Appointments & Services", icon: "📅" },
-  { code: "leads", name: "Leads & Enquiries", icon: "🎯" },
-  { code: "ads", name: "Ad Playbooks", icon: "📣" },
-  { code: "faq", name: "FAQ Knowledge Base", icon: "❓" },
-  { code: "media", name: "Media Library", icon: "🖼️" },
-  { code: "stays", name: "Stays & Hospitality", icon: "🏨" },
-  { code: "resources", name: "Staff / Rooms / Tables", icon: "👥" },
-  { code: "quotes", name: "Price Quotes", icon: "📑" },
-  { code: "table_booking", name: "Table Booking", icon: "🍽️" },
+  { code: "orders", name: "Orders & Cart", icon: ShoppingCartIcon },
+  { code: "catalog", name: "Catalog / Products / Menu", icon: BookOpenIcon },
+  { code: "appointments", name: "Appointments & Services", icon: CalendarIcon },
+  { code: "leads", name: "Leads & Enquiries", icon: TargetIcon },
+  { code: "ads", name: "Ad Playbooks", icon: MegaphoneIcon },
+  { code: "faq", name: "FAQ Knowledge Base", icon: HelpCircleIcon },
+  { code: "media", name: "Media Library", icon: ImageIcon },
+  { code: "stays", name: "Stays & Hospitality", icon: HotelIcon },
+  { code: "resources", name: "Staff / Rooms / Tables", icon: UsersIcon },
+  { code: "quotes", name: "Price Quotes", icon: FileTextIcon },
+  { code: "table_booking", name: "Table Booking", icon: UtensilsIcon },
 ];
 
 export default function BusinessPacksManager({ initialPacks }: { initialPacks: Pack[] }) {
@@ -132,6 +145,7 @@ export default function BusinessPacksManager({ initialPacks }: { initialPacks: P
                   <div className="grid sm:grid-cols-2 gap-3">
                     {AVAILABLE_MODULES.map(mod => {
                       const active = Array.isArray(currentPack.modules) && currentPack.modules.includes(mod.code);
+                      const ModIcon = mod.icon;
 
                       return (
                         <div
@@ -152,7 +166,7 @@ export default function BusinessPacksManager({ initialPacks }: { initialPacks: P
                             />
                             <div className="min-w-0">
                               <p className="text-sm font-semibold text-ink flex items-center gap-1.5">
-                                <span>{mod.icon}</span>
+                                <ModIcon className="w-4 h-4 text-pine shrink-0" />
                                 <span>{mod.name}</span>
                               </p>
                               <p className="text-[11px] text-ink-soft mt-0.5">
