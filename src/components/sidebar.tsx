@@ -131,19 +131,6 @@ export default function Sidebar({ session, tenant, modules = [], labels = {} }: 
               </Link>
             );
           })}
-          {session.superAdmin && (
-            <Link
-              href="/admin"
-              onClick={() => setOpen(false)}
-              className={`block px-3 py-2 rounded-md text-sm ${
-                path.startsWith("/admin")
-                  ? "bg-pine-wash text-pine-deep font-medium"
-                  : "text-ink-soft hover:bg-canvas"
-              }`}
-            >
-              All workspaces
-            </Link>
-          )}
         </div>
 
         <div className="px-5 py-4 mt-2 border-t border-line space-y-3">

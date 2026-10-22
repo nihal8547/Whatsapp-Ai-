@@ -131,6 +131,19 @@ export async function requireOwner(req?: Request) {
   return ctx;
 }
 
+export async function requireSuperAdmin(): Promise<Session> {
+  const session = await requireSession();
+  if (!session.superAdmin) throw new AuthError("forbidden", 403);
+
+  const u = await one<{ is_super_admin: boolean }>(
+    `SELECT is_super_admin FROM wa_tenant_users WHERE id = $1 AND lower(email) = lower($2)`,
+    [session.userId, session.email]
+  );
+  if (!u?.is_super_admin) throw new AuthError("forbidden", 403);
+
+  return session;
+}
+
 export function errorResponse(e: unknown) {
   const status = e instanceof AuthError ? e.status : (e as any)?.status || 500;
   const message = e instanceof Error ? e.message : "server_error";

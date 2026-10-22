@@ -1,10 +1,9 @@
-import { requireSession, AuthError, errorResponse } from "@/lib/auth";
+import { requireSuperAdmin, errorResponse } from "@/lib/auth";
 import { q, one } from "@/lib/db";
 
 export async function GET() {
   try {
-    const s = await requireSession();
-    if (!s.superAdmin) throw new AuthError("forbidden", 403);
+    const s = await requireSuperAdmin();
 
     const plans = await q(
       `SELECT id, code, name, price_qar, monthly_reply_limit, active
@@ -18,8 +17,7 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
-    const s = await requireSession();
-    if (!s.superAdmin) throw new AuthError("forbidden", 403);
+    const s = await requireSuperAdmin();
 
     const b = await req.json();
     const code = String(b.code ?? "").trim().toLowerCase().replace(/\s+/g, "_");

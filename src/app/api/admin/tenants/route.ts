@@ -1,10 +1,9 @@
-import { requireSession, AuthError, errorResponse } from "@/lib/auth";
+import { requireSuperAdmin, errorResponse } from "@/lib/auth";
 import { q } from "@/lib/db";
 
 export async function GET() {
   try {
-    const s = await requireSession();
-    if (!s.superAdmin) throw new AuthError("forbidden", 403);
+    const s = await requireSuperAdmin();
 
     const tenants = await q(
       `SELECT t.id, t.name, t.slug, t.status, t.trial_ends_at, t.created_at,

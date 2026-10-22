@@ -1,10 +1,9 @@
-import { requireSession, setSession, AuthError, errorResponse } from "@/lib/auth";
+import { requireSuperAdmin, setSession, errorResponse } from "@/lib/auth";
 import { one } from "@/lib/db";
 
 export async function POST(req: Request) {
   try {
-    const s = await requireSession();
-    if (!s.superAdmin) throw new AuthError("forbidden", 403);
+    const s = await requireSuperAdmin();
 
     const body = await req.json();
     const targetTenantId = Number(body.tenantId);

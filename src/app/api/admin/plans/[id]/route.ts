@@ -1,4 +1,4 @@
-import { requireSession, AuthError, errorResponse } from "@/lib/auth";
+import { requireSuperAdmin, errorResponse } from "@/lib/auth";
 import { one } from "@/lib/db";
 
 export async function PATCH(
@@ -6,8 +6,7 @@ export async function PATCH(
   ctx: { params: Promise<{ id: string }> }
 ) {
   try {
-    const s = await requireSession();
-    if (!s.superAdmin) throw new AuthError("forbidden", 403);
+    const s = await requireSuperAdmin();
     const { id } = await ctx.params;
     const b = await req.json();
 

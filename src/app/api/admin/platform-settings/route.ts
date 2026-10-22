@@ -1,10 +1,9 @@
-import { requireSession, AuthError, errorResponse } from "@/lib/auth";
+import { requireSuperAdmin, errorResponse } from "@/lib/auth";
 import { one } from "@/lib/db";
 
 export async function GET() {
   try {
-    const s = await requireSession();
-    if (!s.superAdmin) throw new AuthError("forbidden", 403);
+    const s = await requireSuperAdmin();
 
     const row = await one(
       `SELECT dashboard_url, alert_phone, alert_instance,
@@ -21,8 +20,7 @@ export async function GET() {
 
 export async function PUT(req: Request) {
   try {
-    const s = await requireSession();
-    if (!s.superAdmin) throw new AuthError("forbidden", 403);
+    const s = await requireSuperAdmin();
 
     const b = await req.json();
 
