@@ -50,3 +50,140 @@ export async function GET(req: Request) {
     return errorResponse(e);
   }
 }
+
+export async function POST(req: Request) {
+  try {
+    const { tenantId } = await requireTenant(req);
+    const body = await req.json();
+
+    const phone = String(body.phone || "").replace(/[^0-9]/g, "");
+    if (!phone) {
+      return Response.json({ ok: false, error: "Phone number is required" }, { status: 400 });
+    }
+
+    const customerName = (body.customer_name || "").trim();
+    const fulfilment = body.fulfilment === "pickup" ? "pickup" : body.fulfilment === "dine_in" ? "dine_in" : "delivery";
+    const addressText = (body.address_text || "").trim();
+    const notes = (body.notes || "").trim();
+    const staffNotes = (body.staff_notes || "").trim();
+    const deliveryFee = Number(body.delivery_fee) || 0;
+    const discount = Number(body.discount) || 0;
+    const paymentMethod = body.payment_method || "cod";
+    const paymentStatus = body.payment_status || "unpaid";
+    const currency = body.currency || "QAR";
+    const rawItems = Array.isArray(body.items) ? body.items : [];
+
+    if (rawItems.length === 0 && !notes) {
+      return Response.json({ ok: false, error: "At least one item or order notes is required" }, { status: 400 });
+    }
+
+    const items = rawItems.length > 0
+      ? rawItems.map((it: any) => {
+          const qty = Math.max(1, Number(it.qty) || 1);
+          const unitPrice = Math.max(0, Number(it.unit_price) || 0);
+          return {
+            item_id: it.item_id ? Number(it.item_id) : null,
+            name: (it.name || "Item").trim(),
+            variant: (it.variant || "").trim(),
+            qty,
+            unit_price: unitPrice,
+            line_total: Number((qty * unitPrice).toFixed(2)),
+            notes: it.notes ? String(it.notes).trim() : null,
+          };
+        })
+      : [
+          {
+            item_id: null,
+            name: notes || "Order items",
+            variant: "",
+            qty: 1,
+            unit_price: Number(body.total) || 0,
+            line_total: Number(body.total) || 0,
+            notes: addressText || null,
+          },
+        ];
+
+    const subtotal = Number(items.reduce((sum: number, it: any) => sum + it.line_total, 0).toFixed(2));
+    const total = Number(Math.max(0, subtotal + deliveryFee - discount).toFixed(2));
+
+    const { tx } = await import("@/lib/db");
+    const newOrder = await tx(async (client) => {
+      // 1. Generate order_no atomically
+      const counterRes = await client.query(
+        `INSERT INTO wa_order_counters (tenant_id, last_no)
+         VALUES ($1, 1001)
+         ON CONFLICT (tenant_id) DO UPDATE
+           SET last_no = wa_order_counters.last_no + 1
+         RETURNING last_no`,
+        [tenantId]
+      );
+      const orderNo = String(counterRes.rows[0].last_no);
+
+      // 2. Ensure contact exists in wa_contacts
+      await client.query(
+        `INSERT INTO wa_contacts (tenant_id, phone, name)
+         VALUES ($1, $2, NULLIF($3, ''))
+         ON CONFLICT (tenant_id, phone) DO UPDATE
+           SET name = COALESCE(NULLIF($3, ''), wa_contacts.name)`,
+        [tenantId, phone, customerName]
+      );
+
+      // 3. Insert into wa_orders
+      const orderRes = await client.query(
+        `INSERT INTO wa_orders (
+           tenant_id, phone, order_no, status, fulfilment,
+           address_text, customer_name, subtotal, delivery_fee,
+           discount, total, currency, notes, staff_notes,
+           payment_method, payment_status, staff_alerted, placed_at
+         )
+         VALUES (
+           $1, $2, $3, 'pending', $4,
+           NULLIF($5, ''), NULLIF($6, ''), $7, $8,
+           $9, $10, $11, NULLIF($12, ''), NULLIF($13, ''),
+           $14, $15, true, now()
+         )
+         RETURNING *`,
+        [
+          tenantId, phone, orderNo, fulfilment,
+          addressText, customerName, subtotal, deliveryFee,
+          discount, total, currency, notes, staffNotes,
+          paymentMethod, paymentStatus
+        ]
+      );
+      const order = orderRes.rows[0];
+
+      // 4. Insert items
+      const insertedItems = [];
+      for (const it of items) {
+        const itemRes = await client.query(
+          `INSERT INTO wa_order_items (
+             order_id, tenant_id, item_id, name, variant, qty, unit_price, line_total, notes
+           )
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+           RETURNING *`,
+          [order.id, tenantId, it.item_id, it.name, it.variant, it.qty, it.unit_price, it.line_total, it.notes]
+        );
+        insertedItems.push(itemRes.rows[0]);
+      }
+
+      // 5. Insert notification
+      await client.query(
+        `INSERT INTO wa_notifications (tenant_id, kind, title, body, ref_type, ref_id)
+         VALUES (
+           $1, 'new_order', '📦 New Order #' || $2,
+           'Order #' || $2 || ' for ' || COALESCE(NULLIF($3, ''), $4) || ' (' || $4 || '). Total: ' || $5 || ' ' || $6,
+           'order', $7
+         )`,
+        [tenantId, orderNo, customerName, phone, total, currency, order.id]
+      );
+
+      order.items = insertedItems;
+      return order;
+    });
+
+    return Response.json({ ok: true, order: newOrder });
+  } catch (e) {
+    return errorResponse(e);
+  }
+}
+

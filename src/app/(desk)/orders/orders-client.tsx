@@ -82,9 +82,80 @@ export default function OrdersClient({ tenantId, isOwner, orderLabel, ordersLabe
   // Print ticket modal
   const [printOrder, setPrintOrder] = useState<Order | null>(null);
 
+  // New order modal
+  const [newOrderModalOpen, setNewOrderModalOpen] = useState(false);
+  const [newOrderForm, setNewOrderForm] = useState({
+    phone: "",
+    customer_name: "",
+    fulfilment: "delivery" as "delivery" | "pickup",
+    address_text: "",
+    items_summary: "",
+    total: "",
+    notes: "",
+  });
+  const [createLoading, setCreateLoading] = useState(false);
+
   function showToast(msg: string) {
     setToast(msg);
     setTimeout(() => setToast(null), 3500);
+  }
+
+  async function handleCreateOrder(e: React.FormEvent) {
+    e.preventDefault();
+    if (!newOrderForm.phone.trim()) {
+      showToast("Phone number is required");
+      return;
+    }
+    if (!newOrderForm.items_summary.trim()) {
+      showToast("Items description is required");
+      return;
+    }
+    setCreateLoading(true);
+    try {
+      const res = await fetch("/api/orders", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          phone: newOrderForm.phone,
+          customer_name: newOrderForm.customer_name,
+          fulfilment: newOrderForm.fulfilment,
+          address_text: newOrderForm.address_text,
+          notes: newOrderForm.notes,
+          total: Number(newOrderForm.total) || 0,
+          items: [
+            {
+              name: newOrderForm.items_summary,
+              qty: 1,
+              unit_price: Number(newOrderForm.total) || 0,
+              line_total: Number(newOrderForm.total) || 0,
+              notes: newOrderForm.address_text || null,
+            },
+          ],
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) {
+        showToast(data.error || "Failed to create order");
+        setCreateLoading(false);
+        return;
+      }
+      showToast(`Order #${data.order.order_no} created successfully.`);
+      setNewOrderModalOpen(false);
+      setNewOrderForm({
+        phone: "",
+        customer_name: "",
+        fulfilment: "delivery",
+        address_text: "",
+        items_summary: "",
+        total: "",
+        notes: "",
+      });
+      loadOrders();
+    } catch {
+      showToast("Error creating order.");
+    } finally {
+      setCreateLoading(false);
+    }
   }
 
   async function loadOrders() {
@@ -242,6 +313,9 @@ export default function OrdersClient({ tenantId, isOwner, orderLabel, ordersLabe
         lead="Live operational order processing board with customer WhatsApp automation."
         action={
           <div className="flex items-center gap-2">
+            <Button variant="primary" onClick={() => setNewOrderModalOpen(true)}>
+              + New Order
+            </Button>
             {isOwner && (
               <Link href="/orders/settings">
                 <Button variant="quiet">Order Settings</Button>
@@ -944,6 +1018,117 @@ export default function OrdersClient({ tenantId, isOwner, orderLabel, ordersLabe
                 🖨 Print Now
               </Button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* New Order Modal */}
+      {newOrderModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/50 p-4">
+          <div className="bg-surface border border-line rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-line pb-3">
+              <div>
+                <h3 className="font-semibold text-ink text-base">Create New Order</h3>
+                <p className="text-xs text-ink-soft">Record a customer order manually</p>
+              </div>
+              <button
+                onClick={() => setNewOrderModalOpen(false)}
+                className="text-ink-soft hover:text-ink text-lg font-bold"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateOrder} className="space-y-3">
+              <Field label="Customer Phone *">
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. 97430954643"
+                  value={newOrderForm.phone}
+                  onChange={(e) => setNewOrderForm({ ...newOrderForm, phone: e.target.value })}
+                  className={inputClass}
+                />
+              </Field>
+
+              <Field label="Customer Name">
+                <input
+                  type="text"
+                  placeholder="Full name"
+                  value={newOrderForm.customer_name}
+                  onChange={(e) => setNewOrderForm({ ...newOrderForm, customer_name: e.target.value })}
+                  className={inputClass}
+                />
+              </Field>
+
+              <div className="grid grid-cols-2 gap-3">
+                <Field label="Fulfilment">
+                  <select
+                    value={newOrderForm.fulfilment}
+                    onChange={(e) =>
+                      setNewOrderForm({ ...newOrderForm, fulfilment: e.target.value as "delivery" | "pickup" })
+                    }
+                    className={inputClass}
+                  >
+                    <option value="delivery">Delivery</option>
+                    <option value="pickup">Pickup</option>
+                  </select>
+                </Field>
+
+                <Field label="Total Amount (QAR)">
+                  <input
+                    type="number"
+                    step="0.01"
+                    placeholder="e.g. 938"
+                    value={newOrderForm.total}
+                    onChange={(e) => setNewOrderForm({ ...newOrderForm, total: e.target.value })}
+                    className={inputClass}
+                  />
+                </Field>
+              </div>
+
+              {newOrderForm.fulfilment === "delivery" && (
+                <Field label="Delivery Address / Area">
+                  <input
+                    type="text"
+                    placeholder="e.g. Doha, Street 12, Villa 4"
+                    value={newOrderForm.address_text}
+                    onChange={(e) => setNewOrderForm({ ...newOrderForm, address_text: e.target.value })}
+                    className={inputClass}
+                  />
+                </Field>
+              )}
+
+              <Field label="Items Description *">
+                <textarea
+                  required
+                  rows={2}
+                  placeholder="e.g. Winter Drift Bike (Blue) x 1, Winter Drift Bike (Yellow) x 1"
+                  value={newOrderForm.items_summary}
+                  onChange={(e) => setNewOrderForm({ ...newOrderForm, items_summary: e.target.value })}
+                  className={inputClass}
+                />
+              </Field>
+
+              <Field label="Special Notes">
+                <input
+                  type="text"
+                  placeholder="Any customer notes or delivery instructions"
+                  value={newOrderForm.notes}
+                  onChange={(e) => setNewOrderForm({ ...newOrderForm, notes: e.target.value })}
+                  className={inputClass}
+                />
+              </Field>
+
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-line">
+                <Button variant="quiet" type="button" onClick={() => setNewOrderModalOpen(false)}>
+                  Cancel
+                </Button>
+                <Button variant="primary" type="submit" disabled={createLoading}>
+                  {createLoading ? "Creating..." : "Save Order"}
+                </Button>
+              </div>
+            </form>
           </div>
         </div>
       )}
