@@ -102,7 +102,7 @@ export async function POST(req: Request) {
 
 // ─── shared validation ─────────────────────────────────────────────────────
 
-function validateBody(body: any): { ok: true; name: string; match_type: MatchType; match_value: string | null; instructions: string; media_id: number | null; active: boolean; sort_order: number } | { ok: false; error: string } {
+function validateBody(body: any): { ok: true; name: string; match_type: MatchType; match_value: string; instructions: string; media_id: number | null; active: boolean; sort_order: number } | { ok: false; error: string } {
   const name = String(body.name ?? "").trim();
   if (!name) return { ok: false, error: "name_required" };
   if (name.length > 100) return { ok: false, error: "name_too_long" };
@@ -113,11 +113,10 @@ function validateBody(body: any): { ok: true; name: string; match_type: MatchTyp
   }
 
   const raw_match_value = body.match_value !== undefined ? String(body.match_value ?? "").trim() : "";
-  let match_value: string | null = raw_match_value || null;
-  if (match_type !== "any" && !match_value) {
+  if (match_type !== "any" && !raw_match_value) {
     return { ok: false, error: "match_value_required" };
   }
-  if (match_type === "any") match_value = null;
+  const match_value = match_type === "any" ? "" : raw_match_value;
 
   const instructions = String(body.instructions ?? "").trim();
   if (!instructions) return { ok: false, error: "instructions_required" };

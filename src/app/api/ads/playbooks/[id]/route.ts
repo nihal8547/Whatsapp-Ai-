@@ -1,5 +1,5 @@
 import { requireOwner, errorResponse, AuthError } from "@/lib/auth";
-import { q, one } from "@/lib/db";
+import { one } from "@/lib/db";
 
 const VALID_MATCH_TYPES = ["source_id", "title_contains", "any"] as const;
 type MatchType = (typeof VALID_MATCH_TYPES)[number];
@@ -33,14 +33,14 @@ export async function PATCH(
       ? body.match_type
       : current.match_type;
 
-    let match_value: string | null = body.match_value !== undefined
-      ? (String(body.match_value).trim() || null)
+    let match_value: string = body.match_value !== undefined
+      ? (String(body.match_value).trim())
       : current.match_value;
 
     if (match_type !== "any" && !match_value) {
       return Response.json({ ok: false, error: "match_value_required" }, { status: 400 });
     }
-    if (match_type === "any") match_value = null;
+    if (match_type === "any") match_value = "";
 
     const instructions = body.instructions !== undefined
       ? String(body.instructions).trim()
@@ -78,7 +78,7 @@ export async function PATCH(
     const updated = await one(
       `UPDATE wa_ad_playbooks
           SET name = $1, match_type = $2, match_value = $3, instructions = $4,
-              media_id = $5, active = $6, sort_order = $7
+              media_id = $5, active = $6, sort_order = $7, updated_at = now()
         WHERE id = $8 AND tenant_id = $9
         RETURNING id, name, match_type, match_value, instructions, media_id, active, sort_order`,
       [name, match_type, match_value, instructions, media_id, active, sort_order, id, tenantId]
