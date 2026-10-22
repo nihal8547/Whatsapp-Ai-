@@ -11,7 +11,8 @@ export default async function AdminPlansPage() {
   if (!session.superAdmin) redirect("/desk");
 
   const plans = await q(
-    `SELECT id, code, name, price_qar, monthly_reply_limit, active FROM wa_plans ORDER BY active DESC, id`
+    `SELECT id, code, name, price_qar, monthly_reply_limit, broadcast_limit, is_popular, features, active
+       FROM wa_plans ORDER BY active DESC, id`
   );
 
   return <PlansManager initialPlans={plans} />;

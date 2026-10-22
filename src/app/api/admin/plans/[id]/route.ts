@@ -19,9 +19,12 @@ export async function PATCH(
          monthly_reply_limit = CASE WHEN $5::text = 'keep' THEN monthly_reply_limit
                                     WHEN $5::text = 'null' THEN NULL
                                     ELSE $5::int END,
-         active              = COALESCE($6, active)
+         active              = COALESCE($6, active),
+         broadcast_limit     = COALESCE($7, broadcast_limit),
+         is_popular          = COALESCE($8, is_popular),
+         features            = COALESCE($9::jsonb, features)
        WHERE id = $1::int
-       RETURNING id, code, name, price_qar, monthly_reply_limit, active`,
+       RETURNING id, code, name, price_qar, monthly_reply_limit, broadcast_limit, is_popular, features, active`,
       [
         id,
         String(b.code ?? ""),
@@ -33,6 +36,9 @@ export async function PATCH(
           ? "null"
           : String(Number(b.monthly_reply_limit)),
         b.active !== undefined ? Boolean(b.active) : null,
+        b.broadcast_limit !== undefined ? Number(b.broadcast_limit) : null,
+        b.is_popular !== undefined ? Boolean(b.is_popular) : null,
+        Array.isArray(b.features) ? JSON.stringify(b.features) : null,
       ]
     );
     if (!row) return Response.json({ ok: false, error: "not_found" }, { status: 404 });
