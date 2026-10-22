@@ -60,6 +60,23 @@ export async function signIn(email: string, password: string): Promise<Session |
   return session;
 }
 
+export async function setSession(session: Session) {
+  const token = await new SignJWT(session as any)
+    .setProtectedHeader({ alg: "HS256" })
+    .setIssuedAt()
+    .setExpirationTime("30d")
+    .sign(secret());
+
+  const jar = await cookies();
+  jar.set(COOKIE, token, {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: 60 * 60 * 24 * 30,
+  });
+}
+
 export async function signOut() {
   const jar = await cookies();
   jar.delete(COOKIE);

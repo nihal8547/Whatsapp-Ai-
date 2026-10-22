@@ -13,7 +13,9 @@ type Tenant = {
   business_type: string | null; admin_notes: string;
   plan: string; plan_id: number | null;
   timezone: string | null; admin_phone: string | null;
+  modules?: string[] | null;
   broadcasts_enabled?: boolean;
+  broadcast_daily_cap?: number;
   instance_name: string | null; wa_status: string;
   disconnected_since?: string | null;
   reconnected_at?: string | null;
@@ -191,6 +193,23 @@ export default function TenantDetail({
 
   const planName = plans.find(p => p.id === tenant.plan_id)?.name ?? tenant.plan;
 
+  const [switching, setSwitching] = useState(false);
+
+  async function impersonateWorkspace() {
+    setSwitching(true);
+    const res = await fetch("/api/admin/impersonate", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ tenantId: tenant.id }),
+    });
+    const d = await res.json();
+    setSwitching(false);
+    if (!d.ok) return show("Could not switch workspace context.");
+    show(`Switched to ${tenant.name}`);
+    router.push("/desk");
+    router.refresh();
+  }
+
   return (
     <div className="min-h-screen bg-canvas">
       {/* ── Header ── */}
@@ -200,10 +219,20 @@ export default function TenantDetail({
           <span className="text-ink-faint">/</span>
           <span className="font-semibold">{tenant.name}</span>
         </div>
-        <Link href={`/desk?tenant=${tenant.id}`}
-          className="text-sm text-pine hover:underline">
-          View as this workspace →
-        </Link>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="primary"
+            disabled={switching}
+            onClick={impersonateWorkspace}
+            className="text-xs py-1.5 px-3 flex items-center gap-1.5"
+          >
+            <span>⚡ Login to Desk</span>
+          </Button>
+          <Link href={`/desk?tenant=${tenant.id}`}
+            className="text-xs text-ink-soft hover:text-ink border border-line rounded px-2.5 py-1.5 hover:bg-canvas">
+            Preview Link →
+          </Link>
+        </div>
       </header>
 
       <div className="p-6 lg:p-8 max-w-5xl mx-auto space-y-6">
@@ -472,6 +501,20 @@ export default function TenantDetail({
               />
             </Field>
 
+            <Field label="Daily broadcast limit" hint="Max recipients/day">
+              <input
+                type="number"
+                min={1}
+                className={inputClass}
+                defaultValue={tenant.broadcast_daily_cap ?? 100}
+                disabled={savingAction}
+                onBlur={e => {
+                  const val = Number(e.target.value);
+                  if (val > 0) patch({ broadcast_daily_cap: val });
+                }}
+              />
+            </Field>
+
             <div className="pt-2 sm:col-span-3 border-t border-line">
               <label className="flex items-center gap-2.5 text-sm cursor-pointer select-none">
                 <input
@@ -487,6 +530,90 @@ export default function TenantDetail({
                 Disable to restrict this tenant from launching any broadcast campaigns.
               </p>
             </div>
+          </div>
+        </Panel>
+
+        {/* ── Feature Modules Management ── */}
+        <Panel>
+          <div className="flex items-center justify-between mb-2">
+            <div>
+              <h2 className="font-semibold">Feature Modules</h2>
+              <p className="text-xs text-ink-soft mt-0.5">
+                Enable or disable specific business features for this workspace.
+              </p>
+            </div>
+            {tenant.modules && (
+              <Button
+                variant="quiet"
+                className="text-xs py-1 px-2.5"
+                disabled={savingAction}
+                onClick={() => {
+                  if (confirm("Reset this workspace to use default modules from its business pack?")) {
+                    patch({ modules: null });
+                  }
+                }}
+              >
+                Reset to Pack Defaults
+              </Button>
+            )}
+          </div>
+
+          <div className="mt-4 grid sm:grid-cols-2 md:grid-cols-3 gap-3">
+            {[
+              { code: "orders", name: "Orders & Cart", icon: "🛒" },
+              { code: "catalog", name: "Catalog / Menu", icon: "📋" },
+              { code: "appointments", name: "Appointments & Bookings", icon: "📅" },
+              { code: "leads", name: "Leads & Enquiries", icon: "🎯" },
+              { code: "ads", name: "Ad Playbooks", icon: "📣" },
+              { code: "faq", name: "FAQ Knowledge Base", icon: "❓" },
+              { code: "media", name: "Media Library", icon: "🖼️" },
+            ].map(mod => {
+              // Active if in tenant.modules, or if tenant.modules is null/unset then check standard active default
+              const isEnabled = Array.isArray(tenant.modules)
+                ? tenant.modules.includes(mod.code)
+                : ["orders", "catalog", "appointments", "leads", "ads", "faq", "media"].includes(mod.code);
+
+              return (
+                <div
+                  key={mod.code}
+                  className={`p-3 rounded-lg border transition-all ${
+                    isEnabled
+                      ? "bg-pine-wash/20 border-pine/30"
+                      : "bg-canvas/50 border-line opacity-75"
+                  }`}
+                >
+                  <label className="flex items-start gap-2.5 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      className="mt-0.5 rounded text-pine focus:ring-pine"
+                      checked={isEnabled}
+                      disabled={savingAction}
+                      onChange={e => {
+                        const current = Array.isArray(tenant.modules)
+                          ? [...tenant.modules]
+                          : ["orders", "catalog", "appointments", "leads", "ads", "faq", "media"];
+                        let next: string[];
+                        if (e.target.checked) {
+                          next = Array.from(new Set([...current, mod.code]));
+                        } else {
+                          next = current.filter(m => m !== mod.code);
+                        }
+                        patch({ modules: next });
+                      }}
+                    />
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-ink flex items-center gap-1.5">
+                        <span>{mod.icon}</span>
+                        <span>{mod.name}</span>
+                      </p>
+                      <p className="text-[11px] text-ink-soft mt-0.5">
+                        {isEnabled ? "Active for workspace" : "Disabled"}
+                      </p>
+                    </div>
+                  </label>
+                </div>
+              );
+            })}
           </div>
         </Panel>
 

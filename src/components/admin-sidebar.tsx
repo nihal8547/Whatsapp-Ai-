@@ -14,9 +14,11 @@ type Session = {
 
 const NAV_ITEMS = [
   { href: "/admin", label: "Workspaces", icon: "🏢" },
-  { href: "/admin#overview", label: "Overview & Stats", icon: "📊" },
-  { href: "/admin#plans", label: "Plans & Pricing", icon: "🏷️" },
-  { href: "/admin#settings", label: "Platform Settings", icon: "⚙️" },
+  { href: "/admin/overview", label: "Overview & Stats", icon: "📊" },
+  { href: "/admin/broadcasts", label: "Broadcast Controls", icon: "📢" },
+  { href: "/admin/plans", label: "Plans & Pricing", icon: "🏷️" },
+  { href: "/admin/settings", label: "Platform Settings", icon: "⚙️" },
+  { href: "/admin/safety", label: "Safety & Logs", icon: "🛡️" },
   { href: "/media", label: "Media Library", icon: "🖼️" },
 ];
 

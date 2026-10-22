@@ -65,6 +65,24 @@ export async function POST(req: Request) {
       );
     }
 
+    // Check workspace broadcast permissions and safety settings
+    const botRow = await one<{ broadcast_settings: any }>(
+      `SELECT broadcast_settings FROM wa_bot_settings WHERE tenant_id = $1`,
+      [tenantId]
+    );
+    const bSettings = botRow?.broadcast_settings ?? {};
+    const broadcastAllowed = bSettings.enabled !== false;
+    if (!broadcastAllowed) {
+      return Response.json(
+        {
+          ok: false,
+          error: "broadcast_disabled",
+          message: "Broadcast messaging is not enabled for your workspace. Please contact platform support or upgrade your plan to unlock broadcasts.",
+        },
+        { status: 403 }
+      );
+    }
+
     // Check concurrency: Only ONE running or scheduled broadcast per tenant (409 otherwise)
     const activeBroadcast = await one<{ id: number; name: string; status: string }>(
       `SELECT id, name, status FROM wa_broadcasts
