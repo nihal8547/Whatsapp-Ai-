@@ -71,9 +71,18 @@ export async function POST(req: Request) {
       onboarding: { step: 1, completed: false, finished_at: null },
     };
 
+    const planId = Number(body.planId) > 0 ? Number(body.planId) : 1;
+
     await one(
-      `UPDATE wa_tenants SET business_type = $1, business_metadata = $2 WHERE id = $3 RETURNING id`,
-      [businessType, metadataWithOnboarding, created.tenant_id]
+      `UPDATE wa_tenants 
+       SET business_type = $1, 
+           business_metadata = $2,
+           plan_id = $4,
+           status = 'trial',
+           trial_ends_at = now() + interval '14 days'
+       WHERE id = $3 
+       RETURNING id`,
+      [businessType, metadataWithOnboarding, created.tenant_id, planId]
     );
 
     const hash = await hashPassword(password);
