@@ -155,11 +155,19 @@ export default function LeadsClient({
 
   // Filters
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [kindFilter, setKindFilter] = useState("all");
   const [ownerFilter, setOwnerFilter] = useState("all");
   const [stageFilter, setStageFilter] = useState("all");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [search]);
 
   // Selected lead drawer
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
@@ -189,6 +197,7 @@ export default function LeadsClient({
 
   // New Lead modal
   const [createLeadModalOpen, setCreateLeadModalOpen] = useState(false);
+  const [createLeadSubmitting, setCreateLeadSubmitting] = useState(false);
   const [newLeadPhone, setNewLeadPhone] = useState("");
   const [newLeadName, setNewLeadName] = useState("");
   const [newLeadKind, setNewLeadKind] = useState("general");
@@ -217,7 +226,7 @@ export default function LeadsClient({
     try {
       setLoading(true);
       const params = new URLSearchParams();
-      if (search.trim()) params.set("search", search.trim());
+      if (debouncedSearch.trim()) params.set("search", debouncedSearch.trim());
       if (kindFilter !== "all") params.set("kind", kindFilter);
       if (ownerFilter !== "all") params.set("owner", ownerFilter);
       if (stageFilter !== "all") params.set("stage", stageFilter);
@@ -236,7 +245,7 @@ export default function LeadsClient({
     } finally {
       setLoading(false);
     }
-  }, [search, kindFilter, ownerFilter, stageFilter, dateFrom, dateTo, show]);
+  }, [debouncedSearch, kindFilter, ownerFilter, stageFilter, dateFrom, dateTo, show]);
 
   useEffect(() => {
     fetchLeads();
@@ -270,12 +279,12 @@ export default function LeadsClient({
   }, []);
 
   useEffect(() => {
-    if (selectedLead) {
+    if (selectedLead?.id) {
       fetchEvents(selectedLead.id);
       fetchQuotes(selectedLead.id);
       setQuoteCurrency(selectedLead.currency || "QAR");
     }
-  }, [selectedLead, fetchEvents, fetchQuotes]);
+  }, [selectedLead?.id, fetchEvents, fetchQuotes]);
 
   // Update lead stage
   const updateStage = async (
@@ -442,6 +451,7 @@ export default function LeadsClient({
       show("Phone is required");
       return;
     }
+    setCreateLeadSubmitting(true);
     try {
       const budgetNum = newLeadBudget ? Number(newLeadBudget) : null;
       const res = await fetch("/api/leads", {
@@ -458,7 +468,7 @@ export default function LeadsClient({
       });
       const data = await res.json();
       if (data.ok) {
-        show("Lead created");
+        show(`${leadLabel} created`);
         setCreateLeadModalOpen(false);
         setNewLeadPhone("");
         setNewLeadName("");
@@ -466,10 +476,12 @@ export default function LeadsClient({
         setNewLeadBudget("");
         fetchLeads();
       } else {
-        show(data.error || "Failed to create lead");
+        show(data.error || `Failed to create ${leadLabel.toLowerCase()}`);
       }
     } catch {
-      show("Network error creating lead");
+      show(`Network error creating ${leadLabel.toLowerCase()}`);
+    } finally {
+      setCreateLeadSubmitting(false);
     }
   };
 
@@ -1727,11 +1739,11 @@ export default function LeadsClient({
             </Field>
 
             <div className="flex justify-end gap-2 pt-3 border-t border-line">
-              <Button type="button" variant="quiet" onClick={() => setCreateLeadModalOpen(false)}>
+              <Button type="button" variant="quiet" onClick={() => setCreateLeadModalOpen(false)} disabled={createLeadSubmitting}>
                 Cancel
               </Button>
-              <Button type="submit" variant="primary">
-                Create {leadLabel}
+              <Button type="submit" variant="primary" disabled={createLeadSubmitting}>
+                {createLeadSubmitting ? "Creating..." : `Create ${leadLabel}`}
               </Button>
             </div>
           </form>

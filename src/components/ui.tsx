@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 
 export function Panel({
   children,
@@ -124,9 +124,9 @@ export function Toast({ message }: { message: string | null }) {
 
 export function useToast() {
   const [message, setMessage] = useState<string | null>(null);
-  function show(text: string) {
+  const show = useCallback((text: string) => {
     setMessage(text);
     setTimeout(() => setMessage(null), 3200);
-  }
+  }, []);
   return { message, show };
 }
