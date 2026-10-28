@@ -8,6 +8,7 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const search = (searchParams.get("search") || "").trim();
     const consent = (searchParams.get("consent") || "").trim();
+    const intent = (searchParams.get("intent") || "").trim();
     const limit = Math.min(Number(searchParams.get("limit") || 200), 500);
 
     const contacts = await q(
@@ -15,6 +16,8 @@ export async function GET(req: Request) {
               c.last_message_at, c.consent_status, c.consent_source, c.consent_at, c.opted_out_at,
               COALESCE(um.summary,'') AS summary,
               c.lead_source, c.first_ad_title,
+              c.intent, c.lead_stage, c.interest_topic, c.quote_summary,
+              c.intent_updated_at, c.intent_locked,
               (SELECT count(*) FROM wa_appointments a
                 WHERE a.tenant_id = c.tenant_id AND a.phone = c.phone AND a.status = 'confirmed') AS bookings
          FROM wa_contacts c
@@ -22,8 +25,9 @@ export async function GET(req: Request) {
         WHERE c.tenant_id = $1
           AND ($2 = '' OR c.phone ILIKE '%' || $2 || '%' OR COALESCE(c.name,'') ILIKE '%' || $2 || '%')
           AND ($3 = '' OR c.consent_status = $3)
-        ORDER BY c.last_message_at DESC NULLS LAST LIMIT $4`,
-      [tenantId, search, consent, limit]
+          AND ($4 = '' OR c.intent = $4)
+        ORDER BY c.last_message_at DESC NULLS LAST LIMIT $5`,
+      [tenantId, search, consent, intent, limit]
     );
 
     return Response.json({ ok: true, contacts });

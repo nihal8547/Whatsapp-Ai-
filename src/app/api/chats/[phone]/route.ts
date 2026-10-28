@@ -11,6 +11,8 @@ export async function GET(req: Request, ctx: { params: Promise<{ phone: string }
       `SELECT phone, COALESCE(NULLIF(name,''),'') AS name, bot_enabled, needs_human,
               COALESCE(handoff_reason,'') AS handoff_reason,
               lead_source, first_ad_title,
+              intent, lead_stage, interest_topic, quote_summary,
+              intent_updated_at, intent_locked,
               COALESCE(attributes, '{}'::jsonb) AS attributes
          FROM wa_contacts WHERE tenant_id = $1 AND phone = $2`,
       [tenantId, digits]

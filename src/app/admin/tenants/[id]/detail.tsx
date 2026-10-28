@@ -63,13 +63,21 @@ type Last30Days = {
   ad_leads: number;
 };
 
+export type ApiKeysInfo = {
+  count: number;
+  active_count: number;
+  last_used_at: string | null;
+};
+
 export default function TenantDetail({
   tenant: init, usage, counts, team, plans, last30Days, safetyEvents: initEvents = [],
+  apiKeys: initApiKeys,
 }: {
   tenant: Tenant; usage: UsageRow[]; counts: Counts;
   team: TeamMember[]; plans: Plan[];
   last30Days?: Last30Days;
   safetyEvents?: SafetyEvent[];
+  apiKeys?: ApiKeysInfo;
 }) {
   const router = useRouter();
   const { message, show } = useToast();
@@ -81,6 +89,29 @@ export default function TenantDetail({
   const [deleting, setDeleting] = useState(false);
   const [events, setEvents] = useState<SafetyEvent[]>(initEvents);
   const [pausing, setPausing] = useState(false);
+  const [apiKeysState, setApiKeysState] = useState<ApiKeysInfo>(
+    initApiKeys ?? { count: 0, active_count: 0, last_used_at: null }
+  );
+  const [revokingKeys, setRevokingKeys] = useState(false);
+
+  async function revokeAllKeys() {
+    if (
+      !confirm(
+        `Revoke all API keys for "${tenant.name}"?\n\nThis will immediately deactivate all API keys and stop external integrations from accessing the API.`
+      )
+    )
+      return;
+    setRevokingKeys(true);
+    const res = await fetch(`/api/admin/tenants/${tenant.id}/revoke-keys`, { method: "POST" });
+    const data = await res.json().catch(() => ({}));
+    setRevokingKeys(false);
+    if (!data.ok) {
+      show("Could not revoke API keys.");
+      return;
+    }
+    setApiKeysState((prev) => ({ ...prev, active_count: 0 }));
+    show(`Revoked ${data.revoked_count ?? 0} active key(s).`);
+  }
 
   const isPaused = Boolean(
     tenant.proactive_paused_until &&
@@ -417,6 +448,54 @@ export default function TenantDetail({
               ))}
             </ul>
           )}
+        </Panel>
+
+        {/* ── API Keys & Integrations ── */}
+        <Panel>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
+            <div>
+              <h2 className="font-semibold">API Keys & Integrations</h2>
+              <p className="text-xs text-ink-soft mt-0.5">
+                External access keys and automation endpoints for this workspace.
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="danger"
+                disabled={revokingKeys || apiKeysState.active_count === 0}
+                onClick={revokeAllKeys}
+                className="text-xs py-1.5 px-3"
+              >
+                {revokingKeys ? "Revoking…" : "Revoke all keys"}
+              </Button>
+            </div>
+          </div>
+
+          <div className="grid sm:grid-cols-3 gap-3 pt-1">
+            <div className="p-3.5 bg-canvas/60 border border-line rounded-lg">
+              <span className="text-xs text-ink-soft block font-medium">Total API keys</span>
+              <span className="text-xl font-semibold tabular mt-1 block">{apiKeysState.count}</span>
+            </div>
+            <div className="p-3.5 bg-canvas/60 border border-line rounded-lg">
+              <span className="text-xs text-ink-soft block font-medium">Active keys</span>
+              <span className="text-xl font-semibold tabular mt-1 flex items-center gap-2">
+                {apiKeysState.active_count}
+                {apiKeysState.active_count > 0 ? (
+                  <span className="w-2 h-2 rounded-full bg-pine inline-block" title="Keys are active" />
+                ) : (
+                  <span className="text-xs font-normal text-ink-faint">None active</span>
+                )}
+              </span>
+            </div>
+            <div className="p-3.5 bg-canvas/60 border border-line rounded-lg">
+              <span className="text-xs text-ink-soft block font-medium">Last used</span>
+              <span className="text-sm font-medium mt-1 block truncate">
+                {apiKeysState.last_used_at
+                  ? fullStamp(apiKeysState.last_used_at, tenant.timezone || undefined)
+                  : "Never used"}
+              </span>
+            </div>
+          </div>
         </Panel>
 
         {/* ── Last 30 days usage ── */}

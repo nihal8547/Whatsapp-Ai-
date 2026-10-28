@@ -3,7 +3,7 @@ import { getSession } from "@/lib/auth";
 import { one } from "@/lib/db";
 import { getTenantConfig } from "@/lib/packs";
 import Sidebar from "@/components/sidebar";
-import NotificationsBell from "@/components/notifications-bell";
+import Topbar from "@/components/topbar";
 
 export default async function DeskLayout({ children }: { children: React.ReactNode }) {
   const session = await getSession();
@@ -45,9 +45,15 @@ export default async function DeskLayout({ children }: { children: React.ReactNo
         labels={config.labels}
       />
       <main className="min-w-0 flex flex-col lg:h-screen lg:overflow-hidden">
-        <header className="hidden lg:flex shrink-0 items-center justify-end px-8 h-14 border-b border-line bg-panel/40 backdrop-blur z-20">
-          <NotificationsBell />
-        </header>
+        <Topbar
+          tenant={{
+            name: tenant?.name ?? "Workspace",
+            waStatus: tenant?.wa_status ?? null,
+            repliesUsed: Number(tenant?.replies_used ?? 0),
+            replyLimit: tenant?.monthly_reply_limit ? Number(tenant.monthly_reply_limit) : null,
+            safetyWarning: Boolean(tenant?.safety_warning),
+          }}
+        />
         <div className="flex-1 min-w-0 min-h-0 overflow-y-auto flex flex-col">{children}</div>
       </main>
     </div>

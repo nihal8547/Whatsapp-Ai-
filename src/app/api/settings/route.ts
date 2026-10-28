@@ -1,5 +1,11 @@
 import { requireTenant, requireOwner, errorResponse } from "@/lib/auth";
 import { one } from "@/lib/db";
+import {
+  validateFollowupHours,
+  validateFollowupTemplate,
+  ENQUIRY_ALLOWED_VARS,
+  QUOTED_ALLOWED_VARS,
+} from "@/lib/followups";
 
 export async function GET(req: Request) {
   try {
@@ -9,6 +15,7 @@ export async function GET(req: Request) {
               slot_interval_min, admin_phone, bot_enabled,
               reminder_24h_template, reminder_1h_template,
               followup_enabled, followup_after_hours, followup_template,
+              followup_template_enquiry, followup_template_quoted,
               review_enabled, review_delay_hours, review_link, review_template
          FROM wa_bot_settings WHERE tenant_id = $1`,
       [tenantId]
@@ -23,6 +30,39 @@ export async function PUT(req: Request) {
   try {
     const { tenantId } = await requireOwner(req);
     const b = await req.json();
+
+    // Strict validation for follow-up hours (24 to 168)
+    if (b.followup_after_hours !== undefined && b.followup_after_hours !== null && b.followup_after_hours !== "") {
+      const vh = validateFollowupHours(b.followup_after_hours);
+      if (!vh.ok) {
+        return Response.json({ ok: false, error: "invalid_followup_hours", message: vh.error }, { status: 400 });
+      }
+    }
+
+    // Strict validation for enquiry follow-up template (max 300 chars, only {name} and {topic})
+    if (b.followup_template_enquiry !== undefined) {
+      const vt = validateFollowupTemplate(
+        String(b.followup_template_enquiry ?? ""),
+        ENQUIRY_ALLOWED_VARS,
+        "Enquiry follow-up template"
+      );
+      if (!vt.ok) {
+        return Response.json({ ok: false, error: "invalid_template_variable", message: vt.error }, { status: 400 });
+      }
+    }
+
+    // Strict validation for quote follow-up template (max 300 chars, only {name}, {topic}, {quote})
+    if (b.followup_template_quoted !== undefined) {
+      const vt = validateFollowupTemplate(
+        String(b.followup_template_quoted ?? ""),
+        QUOTED_ALLOWED_VARS,
+        "Quote follow-up template"
+      );
+      if (!vt.ok) {
+        return Response.json({ ok: false, error: "invalid_template_variable", message: vt.error }, { status: 400 });
+      }
+    }
+
     const row = await one(
       `UPDATE wa_bot_settings SET
          business_name = COALESCE(NULLIF($2,''), business_name),
@@ -38,10 +78,12 @@ export async function PUT(req: Request) {
          followup_enabled = COALESCE($12, followup_enabled),
          followup_after_hours = COALESCE($13, followup_after_hours),
          followup_template = COALESCE(NULLIF($14,''), followup_template),
-         review_enabled = COALESCE($15, review_enabled),
-         review_delay_hours = COALESCE($16, review_delay_hours),
-         review_link = COALESCE(NULLIF($17,''), review_link),
-         review_template = COALESCE(NULLIF($18,''), review_template),
+         followup_template_enquiry = COALESCE(NULLIF($15,''), followup_template_enquiry),
+         followup_template_quoted = COALESCE(NULLIF($16,''), followup_template_quoted),
+         review_enabled = COALESCE($17, review_enabled),
+         review_delay_hours = COALESCE($18, review_delay_hours),
+         review_link = COALESCE(NULLIF($19,''), review_link),
+         review_template = COALESCE(NULLIF($20,''), review_template),
          updated_at = now()
        WHERE tenant_id = $1 RETURNING tenant_id`,
       [
@@ -59,6 +101,8 @@ export async function PUT(req: Request) {
         typeof b.followup_enabled === "boolean" ? b.followup_enabled : null,
         b.followup_after_hours ? Number(b.followup_after_hours) : null,
         String(b.followup_template ?? ""),
+        b.followup_template_enquiry !== undefined ? String(b.followup_template_enquiry) : null,
+        b.followup_template_quoted !== undefined ? String(b.followup_template_quoted) : null,
         typeof b.review_enabled === "boolean" ? b.review_enabled : null,
         b.review_delay_hours ? Number(b.review_delay_hours) : null,
         String(b.review_link ?? ""),
@@ -78,3 +122,4 @@ export async function PUT(req: Request) {
     return errorResponse(e);
   }
 }
+

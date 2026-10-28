@@ -4,6 +4,14 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Button, Empty, Tag, Toast, useToast } from "@/components/ui";
 import { clock, dayStamp, timeAgo } from "@/lib/format";
 import { WhatWeKnow } from "@/components/what-we-know";
+import {
+  INTENT_VALUES,
+  STAGE_VALUES,
+  INTENT_CONFIG,
+  STAGE_CONFIG,
+  ContactIntent,
+  LeadStage,
+} from "@/lib/followups";
 
 type Thread = {
   phone: string;
@@ -32,6 +40,12 @@ type Detail = {
     lead_source?: string;
     first_ad_title?: string;
     attributes?: Record<string, any>;
+    intent?: ContactIntent;
+    lead_stage?: LeadStage;
+    interest_topic?: string | null;
+    quote_summary?: string | null;
+    intent_locked?: boolean;
+    intent_updated_at?: string | null;
   };
   memory: { summary: string; facts: string[] } | null;
   appointments: { id: number; service: string; start_time: string; status: string }[];
@@ -47,6 +61,9 @@ export default function Inbox({ initialPhone, tz }: { initialPhone: string | nul
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  const [selectedIntent, setSelectedIntent] = useState<ContactIntent>("unknown");
+  const [selectedStage, setSelectedStage] = useState<LeadStage>("none");
+  const [savingIntent, setSavingIntent] = useState(false);
   const { message: toast, show } = useToast();
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -77,6 +94,13 @@ export default function Inbox({ initialPhone, tz }: { initialPhone: string | nul
     if (active) loadDetail(active, true);
   }, [active, loadDetail]);
 
+  useEffect(() => {
+    if (detail?.contact) {
+      setSelectedIntent(detail.contact.intent || "unknown");
+      setSelectedStage(detail.contact.lead_stage || "none");
+    }
+  }, [detail?.contact]);
+
   // Poll so new customer messages appear without a refresh.
   useEffect(() => {
     const t = setInterval(() => {
@@ -85,6 +109,52 @@ export default function Inbox({ initialPhone, tz }: { initialPhone: string | nul
     }, 7000);
     return () => clearInterval(t);
   }, [active, loadThreads, loadDetail]);
+
+  async function updateIntentAndStage(intentVal: ContactIntent, stageVal: LeadStage) {
+    if (!active) return;
+    setSavingIntent(true);
+    try {
+      const res = await fetch(`/api/contacts/${active}`, {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ intent: intentVal, lead_stage: stageVal }),
+      });
+      const data = await res.json();
+      setSavingIntent(false);
+      if (data.ok) {
+        show("Saved! Intent & stage updated (staff locked).");
+        loadDetail(active, false);
+      } else {
+        show(data.message || data.error || "Failed to update.");
+      }
+    } catch {
+      setSavingIntent(false);
+      show("Network error while saving.");
+    }
+  }
+
+  async function resetAiForChat() {
+    if (!active) return;
+    setSavingIntent(true);
+    try {
+      const res = await fetch(`/api/contacts/${active}`, {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ reset_ai: true }),
+      });
+      const data = await res.json();
+      setSavingIntent(false);
+      if (data.ok) {
+        show("Unlocked: AI classifier will decide intent on next message.");
+        loadDetail(active, false);
+      } else {
+        show(data.message || data.error || "Failed to reset AI.");
+      }
+    } catch {
+      setSavingIntent(false);
+      show("Network error while resetting.");
+    }
+  }
 
   async function send() {
     const text = draft.trim();
@@ -306,6 +376,147 @@ export default function Inbox({ initialPhone, tz }: { initialPhone: string | nul
                 <p className="text-sm text-ink mt-1">{detail.contact.handoff_reason}</p>
               </div>
             )}
+
+            {/* Intent & Lead Stage Section */}
+            <div className="rounded-xl border border-line bg-panel overflow-hidden shadow-2xs">
+              <div className="flex items-center justify-between px-3.5 py-2.5 border-b bg-canvas/80">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs">🎯</span>
+                  <h4 className="text-xs font-semibold text-ink tracking-wide">
+                    Intent & Lead Stage
+                  </h4>
+                </div>
+                {detail.contact.intent_locked ? (
+                  <span
+                    title="Staff decided: AI classifier skips this contact"
+                    className="inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200"
+                  >
+                    🔒 Staff Locked
+                  </span>
+                ) : (
+                  <span
+                    title="AI classifier dynamically categorizes this chat"
+                    className="inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200"
+                  >
+                    🤖 AI Managed
+                  </span>
+                )}
+              </div>
+
+              <div className="p-3.5 space-y-3">
+                {/* Active Badges */}
+                <div className="flex flex-wrap items-center gap-1.5">
+                  {(() => {
+                    const cIntent = detail.contact.intent || "unknown";
+                    const cStage = detail.contact.lead_stage || "none";
+                    const iMeta = INTENT_CONFIG[cIntent] || INTENT_CONFIG.unknown;
+                    const sMeta = STAGE_CONFIG[cStage] || STAGE_CONFIG.none;
+                    return (
+                      <>
+                        <span
+                          className={`inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-md border ${iMeta.bg} ${iMeta.text} ${iMeta.border}`}
+                        >
+                          Intent: {iMeta.label}
+                        </span>
+                        {cStage !== "none" && (
+                          <span
+                            className={`inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-md border ${sMeta.bg} ${sMeta.text} ${sMeta.border}`}
+                          >
+                            Stage: {sMeta.label}
+                          </span>
+                        )}
+                      </>
+                    );
+                  })()}
+                </div>
+
+                {/* Topic and Quote Summary if present */}
+                {(detail.contact.interest_topic || detail.contact.quote_summary) && (
+                  <div className="space-y-1.5 pt-1 text-xs">
+                    {detail.contact.interest_topic && (
+                      <div className="bg-emerald-50/60 border border-emerald-100 rounded-md p-2">
+                        <span className="text-[10px] uppercase font-bold text-emerald-800 tracking-wider block">
+                          Interest Topic
+                        </span>
+                        <p className="text-xs font-medium text-emerald-950 mt-0.5">
+                          {detail.contact.interest_topic}
+                        </p>
+                      </div>
+                    )}
+                    {detail.contact.quote_summary && (
+                      <div className="bg-indigo-50/60 border border-indigo-100 rounded-md p-2">
+                        <span className="text-[10px] uppercase font-bold text-indigo-800 tracking-wider block">
+                          Quote Summary
+                        </span>
+                        <p className="text-xs font-medium text-indigo-950 mt-0.5">
+                          {detail.contact.quote_summary}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Staff Change Controls */}
+                <div className="space-y-2 pt-2 border-t border-line/60">
+                  <div>
+                    <label className="block text-[11px] font-medium text-ink-soft mb-1">
+                      Change Intent
+                    </label>
+                    <select
+                      value={selectedIntent}
+                      onChange={(e) => {
+                        const val = e.target.value as ContactIntent;
+                        setSelectedIntent(val);
+                        updateIntentAndStage(val, selectedStage);
+                      }}
+                      disabled={savingIntent}
+                      className="w-full rounded border border-line bg-canvas px-2.5 py-1.5 text-xs text-ink focus:border-pine focus:outline-none"
+                    >
+                      {INTENT_VALUES.map((v) => (
+                        <option key={v} value={v}>
+                          {INTENT_CONFIG[v].label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-medium text-ink-soft mb-1">
+                      Change Lead Stage
+                    </label>
+                    <select
+                      value={selectedStage}
+                      onChange={(e) => {
+                        const val = e.target.value as LeadStage;
+                        setSelectedStage(val);
+                        updateIntentAndStage(selectedIntent, val);
+                      }}
+                      disabled={savingIntent}
+                      className="w-full rounded border border-line bg-canvas px-2.5 py-1.5 text-xs text-ink focus:border-pine focus:outline-none"
+                    >
+                      {STAGE_VALUES.map((v) => (
+                        <option key={v} value={v}>
+                          {STAGE_CONFIG[v].label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Let AI decide again button */}
+                  <div className="pt-1">
+                    <button
+                      type="button"
+                      onClick={resetAiForChat}
+                      disabled={savingIntent}
+                      className="w-full text-center text-xs text-ink-soft hover:text-ink font-medium px-2.5 py-1.5 rounded bg-canvas hover:bg-line/40 border border-line transition-colors"
+                      title="Resets intent to unknown and removes staff lock"
+                    >
+                      🤖 Let AI decide again
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
 
             <WhatWeKnow memory={detail.memory} />
 

@@ -39,7 +39,7 @@ export default async function TenantDetailPage({
   );
   if (!tenant) notFound();
 
-  const [usage, counts, team, plans, last30Days, safetyEvents] = await Promise.all([
+  const [usage, counts, team, plans, last30Days, safetyEvents, apiKeys] = await Promise.all([
     q(
       `SELECT to_char(day,'YYYY-MM-DD') AS day, messages_in AS msg_received, ai_replies
          FROM wa_usage_daily WHERE tenant_id = $1 ORDER BY day DESC LIMIT 30`,
@@ -88,6 +88,18 @@ export default async function TenantDetailPage({
         LIMIT 50`,
       [id]
     ),
+    one<{
+      count: number;
+      active_count: number;
+      last_used_at: string | null;
+    }>(
+      `SELECT count(*)::int AS count,
+              count(*) FILTER (WHERE active)::int AS active_count,
+              to_char(max(last_used_at), 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS last_used_at
+         FROM wa_tenant_api_keys
+        WHERE tenant_id = $1`,
+      [id]
+    ),
   ]);
 
   return (
@@ -99,6 +111,7 @@ export default async function TenantDetailPage({
       plans={plans}
       last30Days={last30Days ?? { messages_in: 0, new_contacts: 0, bookings_created: 0, ad_leads: 0 }}
       safetyEvents={safetyEvents ?? []}
+      apiKeys={apiKeys ?? { count: 0, active_count: 0, last_used_at: null }}
     />
   );
 }

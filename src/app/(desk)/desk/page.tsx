@@ -2,7 +2,7 @@ import Link from "next/link";
 import { requireTenant } from "@/lib/auth";
 import { q, one } from "@/lib/db";
 import { getTenantConfig } from "@/lib/packs";
-import { Panel, Tag } from "@/components/ui";
+import { Panel, Tag, Avatar } from "@/components/ui";
 import { fullStamp, timeAgo } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
@@ -231,13 +231,14 @@ export default async function DeskPage() {
               Nobody is waiting. The assistant has every chat covered.
             </p>
           ) : (
-            <ul className="divide-y divide-line">
+            <ul className="divide-y divide-line/60">
               {waiting.map((w) => (
                 <li key={w.phone}>
-                  <Link href={`/chats?phone=${w.phone}`} className="flex gap-3 px-5 py-3 hover:bg-canvas">
+                  <Link href={`/chats?phone=${w.phone}`} className="flex items-center gap-3.5 px-5 py-3.5 hover:bg-canvas/60 transition-colors">
+                    <Avatar name={w.name} size="md" />
                     <div className="min-w-0 flex-1">
-                      <p className="font-medium text-sm truncate">{w.name}</p>
-                      <p className="text-sm text-ink-soft truncate">{w.reason || "Asked for a person"}</p>
+                      <p className="font-semibold text-sm text-ink truncate">{w.name}</p>
+                      <p className="text-xs text-ink-soft truncate mt-0.5">{w.reason || "Asked for a person"}</p>
                     </div>
                     <span className="text-xs text-ink-faint tabular shrink-0">
                       {timeAgo(w.last_message_at)}
@@ -357,13 +358,14 @@ export default async function DeskPage() {
             No chats yet. Once your number is connected, conversations land here.
           </p>
         ) : (
-          <ul className="divide-y divide-line">
+          <ul className="divide-y divide-line/60">
             {recent.map((r) => (
               <li key={r.phone}>
-                <Link href={`/chats?phone=${r.phone}`} className="flex gap-3 px-5 py-3 hover:bg-canvas">
+                <Link href={`/chats?phone=${r.phone}`} className="flex items-center gap-3.5 px-5 py-3.5 hover:bg-canvas/60 transition-colors">
+                  <Avatar name={r.name} size="md" />
                   <div className="min-w-0 flex-1">
-                    <p className="font-medium text-sm truncate">{r.name}</p>
-                    <p className="text-sm text-ink-soft truncate">{r.last_text}</p>
+                    <p className="font-semibold text-sm text-ink truncate">{r.name}</p>
+                    <p className="text-xs text-ink-soft truncate mt-0.5">{r.last_text}</p>
                   </div>
                   <span className="text-xs text-ink-faint tabular shrink-0">
                     {timeAgo(r.last_message_at)}
@@ -378,11 +380,29 @@ export default async function DeskPage() {
   );
 }
 
-function Stat({ label, value, alert }: { label: string; value: number | string; alert?: boolean }) {
+function Stat({ label, value, alert, hint }: { label: string; value: number | string; alert?: boolean; hint?: string }) {
   return (
-    <div className="bg-panel border border-line rounded-lg p-4">
-      <p className="text-3xl font-semibold tabular">{value}</p>
-      <p className={`text-sm mt-1 ${alert ? "text-amber font-medium" : "text-ink-soft"}`}>{label}</p>
+    <div
+      className={`rounded-xl border p-4 sm:p-5 transition-all duration-150 flex flex-col justify-between ${
+        alert
+          ? "bg-amber-wash/40 border-amber/30 shadow-2xs hover:border-amber/50"
+          : "bg-panel border-line/80 shadow-2xs hover:shadow-xs hover:border-slate-300"
+      }`}
+    >
+      <div className="flex items-center justify-between gap-2">
+        <p className={`text-xs font-semibold uppercase tracking-wider ${alert ? "text-amber font-bold" : "text-ink-soft"}`}>
+          {label}
+        </p>
+        {alert && (
+          <span className="w-2 h-2 rounded-full bg-amber animate-pulse" />
+        )}
+      </div>
+      <div className="mt-2.5">
+        <p className={`text-2xl sm:text-3xl font-bold tabular tracking-tight ${alert ? "text-amber font-bold" : "text-ink"}`}>
+          {value}
+        </p>
+        {hint && <p className="text-[11px] text-ink-faint mt-1">{hint}</p>}
+      </div>
     </div>
   );
 }

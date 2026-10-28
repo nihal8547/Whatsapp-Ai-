@@ -11,6 +11,7 @@ export default async function AssistantPage() {
             slot_interval_min, admin_phone, bot_enabled,
             reminder_24h_template, reminder_1h_template,
             followup_enabled, followup_after_hours, followup_template,
+            followup_template_enquiry, followup_template_quoted,
             review_enabled, review_delay_hours, review_link, review_template
        FROM wa_bot_settings WHERE tenant_id = $1`,
     [tenantId]
@@ -22,3 +23,4 @@ export default async function AssistantPage() {
     />
   );
 }
+
